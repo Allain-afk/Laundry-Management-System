@@ -2,7 +2,7 @@
 
 Welcome to the official repository for **DRYME**, a tech-powered laundry service website designed to offer a seamless and premium laundry experience for customers in your city.
 
-![Preview](path/to/screenshot.png)
+![Preview](path/to/Preview.png)
 
 ---
 
