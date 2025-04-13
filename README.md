@@ -22,7 +22,7 @@ Whether it's everyday wear, delicate suits, or heavy curtains, we handle each it
 
 ## 🚀 Tech Stack
 
-- **Frontend:** HTML, CSS, JavaScript
+- **Frontend:** HTML, CSS, SCSS, JavaScript
 - **Backend:** (PHP)
 - **Database:** (MySQL)
 
