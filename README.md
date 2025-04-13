@@ -28,5 +28,25 @@ Whether it's everyday wear, delicate suits, or heavy curtains, we handle each it
 
 ---
 
-## 📂 Project Structure
+
+---
+
+## 📸 Dashboard Preview
+![Preview](admin/img/Dashboard.png)
+
+
+---
+
+## 🛠️ Setup Instructions
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/allain-afk/Laundry.git
+
+2. Open index.html in your browser to preview the website.
+
+3. Customize content, images, and links as needed.
+
+
+
 
