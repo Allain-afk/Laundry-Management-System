@@ -316,8 +316,7 @@
     </div>
     <div class="container-fluid bg-dark text-white py-4 px-sm-3 px-md-5">
         <p class="m-0 text-center text-white">
-            &copy; <a class="text-white font-weight-medium" href="#">dryme.com</a>. All Rights Reserved. 
-			        </p>
+            &copy; <a class="text-white font-weight-medium" href="#">dryme.com</a>. All Rights Reserved.</p>
     </div>
     <!-- Footer End -->
 
