@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 13, 2025 at 05:03 PM
+-- Generation Time: Apr 14, 2025 at 11:34 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -44,7 +44,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`admin_id`, `username`, `password`, `full_name`, `email`, `role`, `created_at`, `updated_at`, `profile_picture`) VALUES
-(1, 'admin', 'admin123', 'Allain', 'admin@dryme.com', 'admin', '2025-04-13 02:06:20', '2025-04-13 02:34:43', 'admin_1_1744511577.jpg');
+(1, 'admin', 'admin123', 'Allain', 'admin@dryme.com', 'admin', '2025-04-13 02:06:20', '2025-04-13 15:10:21', 'admin_1_1744557021.jpg');
 
 -- --------------------------------------------------------
 
@@ -162,18 +162,24 @@ CREATE TABLE `orders` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `priority` varchar(20) DEFAULT 'normal',
   `delivery` tinyint(1) DEFAULT 0,
-  `pickup` tinyint(1) DEFAULT 0
+  `pickup` tinyint(1) DEFAULT 0,
+  `weight` decimal(10,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `customer_id`, `total_amount`, `status`, `pickup_date`, `delivery_date`, `created_at`, `priority`, `delivery`, `pickup`) VALUES
-(4, 1, 412.50, 'completed', '0000-00-00', '2025-04-13', '2025-04-13 04:26:05', 'normal', 0, 0),
-(5, 1, 217.50, 'processing', '0000-00-00', '2025-04-13', '2025-04-13 04:31:56', 'normal', 0, 0),
-(6, 1, 217.50, 'processing', '0000-00-00', '2025-04-13', '2025-04-13 04:32:22', 'normal', 0, 0),
-(7, 1, 262.50, 'completed', '2025-04-13', '2025-04-13', '2025-04-13 04:37:41', 'normal', 0, 0);
+INSERT INTO `orders` (`order_id`, `customer_id`, `total_amount`, `status`, `pickup_date`, `delivery_date`, `created_at`, `priority`, `delivery`, `pickup`, `weight`) VALUES
+(4, 1, 412.50, 'completed', '0000-00-00', '2025-04-13', '2025-04-13 04:26:05', 'normal', 0, 0, 0.00),
+(5, 1, 217.50, 'completed', '0000-00-00', '2025-04-13', '2025-04-13 04:31:56', 'normal', 0, 0, 0.00),
+(6, 1, 217.50, 'completed', '0000-00-00', '2025-04-13', '2025-04-13 04:32:22', 'normal', 0, 0, 0.00),
+(7, 1, 262.50, 'completed', '2025-04-13', '2025-04-13', '2025-04-13 04:37:41', 'normal', 0, 0, 0.00),
+(8, 1, 180.00, 'completed', '0000-00-00', '0000-00-00', '2025-04-13 15:18:39', 'express', 0, 0, 0.00),
+(9, 1, 60.00, 'pending', '2025-04-15', NULL, '2025-04-14 20:36:53', 'normal', 1, 0, 0.00),
+(10, 1, 145.00, 'pending', '2025-04-15', NULL, '2025-04-14 20:41:34', 'normal', 1, 0, 0.00),
+(11, 1, 265.00, 'pending', '2025-04-15', NULL, '2025-04-14 20:46:46', 'extra_rush', 1, 0, 7.00),
+(12, 1, 180.00, 'pending', '2025-04-15', NULL, '2025-04-14 20:49:48', 'express', 0, 0, 7.00);
 
 -- --------------------------------------------------------
 
@@ -201,7 +207,9 @@ INSERT INTO `order_details` (`order_detail_id`, `order_id`, `service_id`, `quant
 (4, 6, 1, 7, 0.00, 0.00),
 (5, 6, 2, 7, 0.00, 0.00),
 (6, 7, 1, 8, 0.00, 0.00),
-(7, 7, 2, 8, 0.00, 0.00);
+(7, 7, 2, 8, 0.00, 0.00),
+(8, 8, 1, 5, 0.00, 0.00),
+(9, 8, 2, 5, 0.00, 0.00);
 
 -- --------------------------------------------------------
 
@@ -217,6 +225,14 @@ CREATE TABLE `sales_records` (
   `amount_paid` decimal(10,2) NOT NULL,
   `payment_date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sales_records`
+--
+
+INSERT INTO `sales_records` (`sale_id`, `order_id`, `admin_id`, `customer_id`, `amount_paid`, `payment_date`) VALUES
+(1, 4, 1, 1, 412.50, '2025-04-13 15:04:07'),
+(2, 7, 1, 1, 262.50, '2025-04-13 15:04:07');
 
 -- --------------------------------------------------------
 
@@ -341,19 +357,19 @@ ALTER TABLE `inventory_transactions`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `order_details`
 --
 ALTER TABLE `order_details`
-  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `sales_records`
 --
 ALTER TABLE `sales_records`
-  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `services`
