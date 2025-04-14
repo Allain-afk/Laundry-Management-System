@@ -2,8 +2,8 @@
 require_once 'includes/db_connect.php';
 session_start();
 ?>
-es<!DOCTYPE html>
-ud<html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>DRYME</title>
@@ -25,6 +25,12 @@ ud<html lang="en">
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
     <link href="css/card-hover.css" rel="stylesheet">
+    <style>
+        .btn:hover .order-text {
+            color: #ffffff !important;
+            transition: color 0.3s ease;
+        }
+    </style>
 </head>
 
 <body>
@@ -401,16 +407,19 @@ ud<html lang="en">
                         <div class="d-inline-flex flex-column align-items-center justify-content-center bg-secondary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
                             <h3 class="text-white">Basic</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">$</small>5<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>120<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
                             <p>Automated Washing</p>
                             <p>Dry Cleaning</p>
-                            <p>Iron & Fold </p>
+                            <p>Iron & Fold</p>
                         </div>
+                        <!-- Basic package button -->
                         <div class="mt-auto p-4">
-                            <a href="" class="btn btn-secondary py-2 px-5">Order Now</a>
+                            <a href="pricing.php" class="btn btn-secondary py-2 px-5" style="color: #000000 !important;">
+                                <span class="order-text">Order Now</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -419,7 +428,7 @@ ud<html lang="en">
                         <div class="d-inline-flex flex-column align-items-center justify-content-center bg-primary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
                             <h3 class="text-white">Standard</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">$</small>10<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>150<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
@@ -427,19 +436,22 @@ ud<html lang="en">
                             <p>Dry Cleaning</p>
                             <p>Iron & Fold</p>
                             <p>Express Service</p>
-                            <p>Free Pickup & Delivery</p>
+                            <p>Free Delivery</p>
                         </div>
+                        <!-- Standard package button -->
                         <div class="mt-auto p-4">
-                            <a href="" class="btn btn-primary py-2 px-5">Order Now</a>
+                            <a href="pricing.php" class="btn btn-primary py-2 px-5" style="color: #000000 !important;">
+                                <span class="order-text">Order Now</span>
+                            </a>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-4 mb-4 d-flex">
                     <div class="bg-white text-center mb-2 pt-4 w-100 d-flex flex-column shadow-lg" style="border-radius: 15px;">
-                        <div class="d-inline-flex flex-column align-items-center justify-content-center bg-secondary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
+                        <div class="d-inline-flex flex-column align-items-center justify-content-center rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff; background-color: #DAA520;">
                             <h3 class="text-white">Premium</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">$</small>15<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>180<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
@@ -449,8 +461,11 @@ ud<html lang="en">
                             <p>Priority Service</p>
                             <p>Free Pickup & Delivery</p>
                         </div>
+                        <!-- Premium package button -->
                         <div class="mt-auto p-4">
-                            <a href="" class="btn btn-secondary py-2 px-5">Order Now</a>
+                            <a href="pricing.php" class="btn py-2 px-5" style="background-color: #DAA520; color: #000000 !important;">
+                                <span class="order-text">Order Now</span>
+                            </a>
                         </div>
                     </div>
                 </div>

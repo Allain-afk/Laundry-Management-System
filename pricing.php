@@ -1,3 +1,7 @@
+<?php
+session_start();
+require_once 'includes/db_connect.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -140,6 +144,7 @@
 
 
     <!-- Pricing Plan Start -->
+
     <div class="container-fluid pt-5 pb-3">
         <div class="container">
             <h6 class="text-secondary text-uppercase text-center font-weight-medium mb-3">Our Pricing Plan</h6>
@@ -150,7 +155,7 @@
                         <div class="d-inline-flex flex-column align-items-center justify-content-center bg-secondary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
                             <h3 class="text-white">Basic</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">$</small>5<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>120<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
@@ -159,7 +164,7 @@
                             <p>Iron & Fold</p>
                         </div>
                         <div class="mt-auto p-4">
-                            <a href="" class="btn btn-secondary py-2 px-5">Order Now</a>
+                            <button onclick="checkLoginAndOrder('normal')" class="btn btn-secondary py-2 px-5">Order Now</button>
                         </div>
                     </div>
                 </div>
@@ -168,7 +173,7 @@
                         <div class="d-inline-flex flex-column align-items-center justify-content-center bg-primary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
                             <h3 class="text-white">Standard</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">$</small>10<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>150<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
@@ -179,16 +184,16 @@
                             <p>Free Delivery</p>
                         </div>
                         <div class="mt-auto p-4">
-                            <a href="" class="btn btn-primary py-2 px-5">Order Now</a>
+                            <button onclick="checkLoginAndOrder('express')" class="btn btn-primary py-2 px-5">Order Now</button>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-4 mb-4 d-flex">
                     <div class="bg-white text-center mb-2 pt-4 w-100 d-flex flex-column shadow-lg" style="border-radius: 15px;">
-                        <div class="d-inline-flex flex-column align-items-center justify-content-center bg-secondary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
+                        <div class="d-inline-flex flex-column align-items-center justify-content-center rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff; background-color: #DAA520;">
                             <h3 class="text-white">Premium</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">$</small>15<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>180<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
@@ -199,7 +204,7 @@
                             <p>Free Pickup & Delivery</p>
                         </div>
                         <div class="mt-auto p-4">
-                            <a href="" class="btn btn-secondary py-2 px-5">Order Now</a>
+                            <button onclick="checkLoginAndOrder('extra_rush')" class="btn py-2 px-5" style="background-color: #DAA520; color: white;">Order Now</button>
                         </div>
                     </div>
                 </div>
@@ -280,6 +285,17 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+
+    <!-- Add before closing body tag -->
+    <script>
+    function checkLoginAndOrder(service) {
+        <?php if(!isset($_SESSION['user_id'])): ?>
+            window.location.href = 'login.php';
+        <?php else: ?>
+            window.location.href = 'order.php?service=' + service;
+        <?php endif; ?>
+    }
+    </script>
 </body>
 
 </html>

@@ -264,7 +264,7 @@ $orders = $stmt->fetchAll();
                                             </div>
                                             <div class="form-check">
                                                 <input class="form-check-input" type="radio" name="priority" value="express">
-                                                <label class="form-check-label">Extra Rush (~3 hours)</label>
+                                                <label class="form-check-label">Rush (~3 hours)</label>
                                             </div>
                                         </div>
 
@@ -643,9 +643,9 @@ $(document).ready(function() {
         // Add priority charges
         const priority = $('input[name="priority"]:checked').val();
         if (priority === 'express') {
-            total *= 1.5; // 50% extra for express
+            total *= 1.25; // 25% extra for express
         } else if (priority === 'rush') {
-            total *= 2; // 100% extra for rush
+            total *= 1.5; // 50% extra for rush
         }
 
         $('#total_amount').val(total.toFixed(2));

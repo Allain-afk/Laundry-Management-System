@@ -9,8 +9,12 @@ if (!isset($_GET['order_id'])) {
 $order_id = $_GET['order_id'];
 
 // Get order details
+// Modify the order details query to include weight
+// Modify the query to explicitly select weight
 $stmt = $pdo->prepare("
-    SELECT o.*, o.delivery, o.pickup, o.priority, c.full_name, c.phone, c.email, c.address 
+    SELECT o.order_id, o.total_amount, o.status, o.pickup_date, o.delivery, o.pickup, 
+           o.priority, o.weight, o.created_at,
+           c.full_name, c.phone, c.email, c.address 
     FROM orders o
     JOIN customers c ON o.customer_id = c.customer_id
     WHERE o.order_id = ?
@@ -134,18 +138,22 @@ $items = $stmt->fetchAll();
         $DELIVERY_FEE = 25;
         $PICKUP_FEE = 25;
         
-        $weight = $items[0]['quantity'];
-        $loadPrice = $BASE_LOAD_PRICE;
+        $weight = floatval($order['weight']);
+        $baseAmount = $BASE_LOAD_PRICE;
+        $extraAmount = 0;
+        
         if ($weight > $LOAD_WEIGHT) {
             $extraKilos = $weight - $LOAD_WEIGHT;
-            $loadPrice += ($extraKilos * $EXTRA_KILO_PRICE);
+            $extraAmount = $extraKilos * $EXTRA_KILO_PRICE;
         }
+        
+        $subtotal = $baseAmount + $extraAmount;
         ?>
-        <p><strong>Total Load:</strong> <?php echo number_format($weight, 1); ?> kg (₱<?php echo number_format($loadPrice, 2); ?>)</p>
+        <p><strong>Weight:</strong> <?php echo number_format($weight, 1); ?> kg</p>
         <p style="font-size: 12px; color: #666; margin-left: 20px;">
             Base price for <?php echo $LOAD_WEIGHT; ?>kg: ₱<?php echo number_format($BASE_LOAD_PRICE, 2); ?><br>
-            <?php if ($weight > $LOAD_WEIGHT): ?>
-            Additional <?php echo number_format($extraKilos, 1); ?>kg × ₱<?php echo $EXTRA_KILO_PRICE; ?>: ₱<?php echo number_format($extraKilos * $EXTRA_KILO_PRICE, 2); ?>
+u            <?php if ($weight > $LOAD_WEIGHT): ?>
+                Additional <?php echo number_format($extraKilos, 1); ?>kg × ₱<?php echo $EXTRA_KILO_PRICE; ?>: ₱<?php echo number_format($extraAmount, 2); ?><br>
             <?php endif; ?>
         </p>
 
@@ -163,9 +171,9 @@ $items = $stmt->fetchAll();
         
         <?php if ($order['priority'] !== 'normal'): ?>
             <p><strong>Priority Service (<?php 
-                echo $order['priority'] === 'express' ? 'Express - 50%' : 'Rush - 100%'; 
+                echo $order['priority'] === 'express' ? 'Express - 25%' : 'Rush - 50%'; 
             ?>):</strong> ₱<?php 
-                $baseAmount = $order['total_amount'] / ($order['priority'] === 'express' ? 1.5 : 2);
+                $baseAmount = $order['total_amount'] / ($order['priority'] === 'express' ? 1.25 : 1.5);
                 $priorityFee = $order['total_amount'] - $baseAmount;
                 echo number_format($priorityFee, 2); 
             ?></p>
