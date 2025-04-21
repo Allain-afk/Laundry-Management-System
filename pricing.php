@@ -17,7 +17,7 @@ require_once 'includes/db_connect.php';
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
@@ -85,10 +85,10 @@ require_once 'includes/db_connect.php';
                         <a href="service.php" class="nav-item nav-link">Services</a>
                         <a href="pricing.php" class="nav-item nav-link active">Pricing</a>
                         <a href="contact.php" class="nav-item nav-link">Contact</a>
-                        
+
                         <!-- Add User Profile Dropdown -->
                         <?php
-                        if(isset($_SESSION['user_id'])) { ?>
+                        if (isset($_SESSION['user_id'])) { ?>
                             <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
                                     <i class="fa fa-user"></i> <?php echo $_SESSION['username']; ?>
@@ -97,18 +97,18 @@ require_once 'includes/db_connect.php';
                                     <div class="px-3 py-2">
                                         <p class="mb-1"><strong>Username:</strong> <?php echo $_SESSION['username']; ?></p>
                                         <p class="mb-1"><strong>Email:</strong> <?php echo $_SESSION['email']; ?></p>
-                                        <?php if(isset($_SESSION['full_name'])): ?>
+                                        <?php if (isset($_SESSION['full_name'])): ?>
                                             <p class="mb-1"><strong>Full Name:</strong> <?php echo $_SESSION['full_name']; ?></p>
                                         <?php endif; ?>
-                                        <?php if(isset($_SESSION['phone'])): ?>
+                                        <?php if (isset($_SESSION['phone'])): ?>
                                             <p class="mb-1"><strong>Phone:</strong> <?php echo $_SESSION['phone']; ?></p>
                                         <?php endif; ?>
-                                        <?php if(isset($_SESSION['address'])): ?>
+                                        <?php if (isset($_SESSION['address'])): ?>
                                             <p class="mb-1"><strong>Address:</strong> <?php echo $_SESSION['address']; ?></p>
                                         <?php endif; ?>
                                     </div>
                                     <div class="dropdown-divider"></div>
-                                    <a href="profile.php" class="dropdown-item">Edit Profile</a>
+                                    <a href="profile.php" class="dropdown-item">My Profile</a>
                                     <a href="helpers/logout.php" class="dropdown-item">Logout</a>
                                 </div>
                             </div>
@@ -132,7 +132,7 @@ require_once 'includes/db_connect.php';
                 </div>
                 <div class="col-md-6 text-center text-md-right">
                     <div class="d-inline-flex align-items-center">
-                        <a class="btn text-white" href="">Home</a>
+                        <a class="btn text-white" href="index.php">Home</a>
                         <i class="fas fa-angle-right text-white"></i>
                         <a class="btn text-white disabled" href="">Pricing</a>
                     </div>
@@ -153,9 +153,9 @@ require_once 'includes/db_connect.php';
                 <div class="col-lg-4 mb-4 d-flex">
                     <div class="bg-white text-center mb-2 pt-4 w-100 d-flex flex-column shadow-lg" style="border-radius: 15px;">
                         <div class="d-inline-flex flex-column align-items-center justify-content-center bg-secondary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
-                            <h3 class="text-white">Basic</h3>
+                            <h3 class="text-white">Normal</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>120<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>210<small class="align-bottom" style="font-size: 16px; line-height: 40px;">.00</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
@@ -171,13 +171,13 @@ require_once 'includes/db_connect.php';
                 <div class="col-lg-4 mb-4 d-flex">
                     <div class="bg-white text-center mb-2 pt-4 w-100 d-flex flex-column shadow-lg" style="border-radius: 15px;">
                         <div class="d-inline-flex flex-column align-items-center justify-content-center bg-primary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
-                            <h3 class="text-white">Standard</h3>
+                            <h3 class="text-white">Express</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>150<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>210<small class="align-top" style="font-size: 16px; line-height: 40px;">+25%</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
-                            <p>Premium Washing</p>
+                            <p>Automated Washing</p>
                             <p>Dry Cleaning</p>
                             <p>Iron & Fold</p>
                             <p>Express Service</p>
@@ -191,16 +191,16 @@ require_once 'includes/db_connect.php';
                 <div class="col-lg-4 mb-4 d-flex">
                     <div class="bg-white text-center mb-2 pt-4 w-100 d-flex flex-column shadow-lg" style="border-radius: 15px;">
                         <div class="d-inline-flex flex-column align-items-center justify-content-center rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff; background-color: #DAA520;">
-                            <h3 class="text-white">Premium</h3>
+                            <h3 class="text-white">Rush</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>180<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>210<small class="align-top" style="font-size: 16px; line-height: 40px;">+50%</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
-                            <p>Luxury Washing</p>
-                            <p>Premium Dry Cleaning</p>
+                            <p>Automated Washing</p>
+                            <p>Dry Cleaning</p>
                             <p>Professional Iron & Fold</p>
-                            <p>Priority Service</p>
+                            <p>Rush Priority Service</p>
                             <p>Free Pickup & Delivery</p>
                         </div>
                         <div class="mt-auto p-4">
@@ -218,7 +218,9 @@ require_once 'includes/db_connect.php';
     <div class="container-fluid bg-primary text-white mt-5 pt-5 px-sm-3 px-md-5">
         <div class="row pt-5">
             <div class="col-lg-3 col-md-6 mb-5">
-                <a href=""><h1 class="text-secondary mb-3"><span class="text-white">DRY</span>ME</h1></a>
+                <a href="">
+                    <h1 class="text-secondary mb-3"><span class="text-white">DRY</span>ME</h1>
+                </a>
                 <p>"We don’t just clean clothes—we care for them."</p>
                 <div class="d-flex justify-content-start mt-4">
                     <a class="btn btn-outline-light rounded-circle text-center mr-2 px-0" style="width: 38px; height: 38px;" href="#"><i class="fab fa-twitter"></i></a>
@@ -229,10 +231,9 @@ require_once 'includes/db_connect.php';
             </div>
             <div class="col-lg-3 col-md-6 mb-5">
                 <h4 class="text-white mb-4">Get In Touch</h4>
-                <p>Dolor clita stet nonumy clita diam vero, et et ipsum diam labore</p>
-                <p><i class="fa fa-map-marker-alt mr-2"></i>123 Street, New York, USA</p>
-                <p><i class="fa fa-phone-alt mr-2"></i>+012 345 67890</p>
-                <p><i class="fa fa-envelope mr-2"></i>info@example.com</p>
+                <p><i class="fa fa-map-marker-alt mr-2"></i>Cebu City</p>
+                <p><i class="fa fa-phone-alt mr-2"></i>+63 123 456 789</p>
+                <p><i class="fa fa-envelope mr-2"></i>dry.me@gmail.com</p>
             </div>
             <div class="col-lg-3 col-md-6 mb-5">
                 <h4 class="text-white mb-4">Quick Links</h4>
@@ -262,7 +263,7 @@ require_once 'includes/db_connect.php';
     </div>
     <div class="container-fluid bg-dark text-white py-4 px-sm-3 px-md-5">
         <p class="m-0 text-center text-white">
-            &copy; <a class="text-white font-weight-medium" href="#">Your Site Name</a>. All Rights Reserved.</p>
+            &copy; <a class="text-white font-weight-medium" href="#">dryme.com</a>. All Rights Reserved.</p>
     </div>
     <!-- Footer End -->
 
@@ -286,15 +287,15 @@ require_once 'includes/db_connect.php';
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
 
-    <!-- Add before closing body tag -->
+    <!-- checks if customer is logged in before ordering a laundry service -->
     <script>
-    function checkLoginAndOrder(service) {
-        <?php if(!isset($_SESSION['user_id'])): ?>
-            window.location.href = 'login.php';
-        <?php else: ?>
-            window.location.href = 'order.php?service=' + service;
-        <?php endif; ?>
-    }
+        function checkLoginAndOrder(service) {
+            <?php if (!isset($_SESSION['user_id'])): ?>
+                window.location.href = 'login.php';
+            <?php else: ?>
+                window.location.href = 'order.php?service=' + service;
+            <?php endif; ?>
+        }
     </script>
 </body>
 

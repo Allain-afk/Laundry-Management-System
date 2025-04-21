@@ -1,7 +1,7 @@
 <?php
 try {
     $host = 'localhost';
-    $dbname = 'laundry_db'; 
+    $dbname = 'laundry'; 
     $username = 'root';
     $password = '';
     

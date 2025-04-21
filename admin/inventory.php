@@ -41,7 +41,7 @@ $equipment = $stmt->fetchAll();
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -95,7 +95,7 @@ $equipment = $stmt->fetchAll();
                 <div class="navbar-nav align-items-center ms-auto">
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img class="rounded-circle me-lg-2" src="<?php echo isset($admin['profile_picture']) && $admin['profile_picture'] ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 40px; height: 40px;">
+                            <img class="rounded-circle me-lg-2" src="<?php echo isset($admin['profile_picture']) && $admin['profile_picture'] ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                             <span class="d-none d-lg-inline-flex"><?php echo htmlspecialchars($admin['full_name']); ?></span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
@@ -132,27 +132,27 @@ $equipment = $stmt->fetchAll();
                                     </thead>
                                     <tbody>
                                         <?php foreach ($supplies as $supply): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($supply['name']); ?></td>
-                                            <td><?php echo htmlspecialchars($supply['quantity']); ?></td>
-                                            <td><?php echo htmlspecialchars($supply['unit']); ?></td>
-                                            <td><?php echo htmlspecialchars($supply['minimum_stock']); ?></td>
-                                            <td>
-                                                <?php if ($supply['quantity'] <= $supply['minimum_stock']): ?>
-                                                    <span class="badge bg-danger">Low Stock</span>
-                                                <?php else: ?>
-                                                    <span class="badge bg-success">In Stock</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <button class="btn btn-sm btn-primary" onclick="editItem(<?php echo $supply['item_id']; ?>, 'supply')">
-                                                    <i class="fa fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-info" onclick="viewHistory(<?php echo $supply['item_id']; ?>)">
-                                                    <i class="fa fa-history"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($supply['name']); ?></td>
+                                                <td><?php echo htmlspecialchars($supply['quantity']); ?></td>
+                                                <td><?php echo htmlspecialchars($supply['unit']); ?></td>
+                                                <td><?php echo htmlspecialchars($supply['minimum_stock']); ?></td>
+                                                <td>
+                                                    <?php if ($supply['quantity'] <= $supply['minimum_stock']): ?>
+                                                        <span class="badge bg-danger">Low Stock</span>
+                                                    <?php else: ?>
+                                                        <span class="badge bg-success">In Stock</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary" onclick="editItem(<?php echo $supply['item_id']; ?>, 'supply')">
+                                                        <i class="fa fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-info" onclick="viewHistory(<?php echo $supply['item_id']; ?>)">
+                                                        <i class="fa fa-history"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
                                         <?php endforeach; ?>
                                     </tbody>
                                 </table>
@@ -188,30 +188,30 @@ $equipment = $stmt->fetchAll();
                                     </thead>
                                     <tbody>
                                         <?php foreach ($equipment as $item): ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($item['name']); ?></td>
-                                            <td><?php echo htmlspecialchars($item['quantity']); ?></td>
-                                            <td>
-                                                <?php
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($item['name']); ?></td>
+                                                <td><?php echo htmlspecialchars($item['quantity']); ?></td>
+                                                <td>
+                                                    <?php
                                                     $statusClass = [
                                                         'active' => 'bg-success',
                                                         'maintenance' => 'bg-warning',
                                                         'inactive' => 'bg-danger'
                                                     ][$item['status']] ?? 'bg-secondary';
-                                                ?>
-                                                <span class="badge <?php echo $statusClass; ?>"><?php echo ucfirst($item['status']); ?></span>
-                                            </td>
-                                            <td><?php echo htmlspecialchars($item['last_maintenance_date']); ?></td>
-                                            <td><?php echo htmlspecialchars($item['next_maintenance_date']); ?></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-primary" onclick="editItem(<?php echo $item['item_id']; ?>, 'equipment')">
-                                                    <i class="fa fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-warning" onclick="scheduleMaintenance(<?php echo $item['item_id']; ?>)">
-                                                    <i class="fa fa-tools"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
+                                                    ?>
+                                                    <span class="badge <?php echo $statusClass; ?>"><?php echo ucfirst($item['status']); ?></span>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($item['last_maintenance_date']); ?></td>
+                                                <td><?php echo htmlspecialchars($item['next_maintenance_date']); ?></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary" onclick="editItem(<?php echo $item['item_id']; ?>, 'equipment')">
+                                                        <i class="fa fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-warning" onclick="scheduleMaintenance(<?php echo $item['item_id']; ?>)">
+                                                        <i class="fa fa-tools"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
                                         <?php endforeach; ?>
                                     </tbody>
                                 </table>
@@ -227,7 +227,7 @@ $equipment = $stmt->fetchAll();
                 <div class="bg-light rounded-top p-4">
                     <div class="row">
                         <div class="col-12 col-sm-6 text-center text-sm-start">
-                            &copy; <a href="#">DryMe</a>, All Right Reserved. 
+                            &copy; <a href="#">DryMe</a>, All Right Reserved.
                         </div>
                     </div>
                 </div>
@@ -362,23 +362,23 @@ $equipment = $stmt->fetchAll();
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
     <script>
-            // Initialize all modals
-            const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-            
-            function showSuccess(message) {
-                document.getElementById('successMessage').textContent = message;
-                successModal.show();
-                setTimeout(() => {
-                    location.reload();
-                }, 1500);
-            }
-    
-            document.getElementById('addSupplyForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                formData.append('action', 'add_supply');
-    
-                fetch('helpers/inventory_handler.php', {
+        // Initialize all modals
+        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+
+        function showSuccess(message) {
+            document.getElementById('successMessage').textContent = message;
+            successModal.show();
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        }
+
+        document.getElementById('addSupplyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('action', 'add_supply');
+
+            fetch('helpers/inventory_handler.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -391,14 +391,14 @@ $equipment = $stmt->fetchAll();
                         alert('Error: ' + data.message);
                     }
                 });
-            });
-    
-            document.getElementById('addEquipmentForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                formData.append('action', 'add_equipment');
-    
-                fetch('helpers/inventory_handler.php', {
+        });
+
+        document.getElementById('addEquipmentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('action', 'add_equipment');
+
+            fetch('helpers/inventory_handler.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -411,10 +411,11 @@ $equipment = $stmt->fetchAll();
                         alert('Error: ' + data.message);
                     }
                 });
-            });
-    
-            // Set minimum date for maintenance date input
-            document.querySelector('input[name="next_maintenance_date"]').min = new Date().toISOString().split('T')[0];
-        </script>
+        });
+
+        // Set minimum date for maintenance date input
+        document.querySelector('input[name="next_maintenance_date"]').min = new Date().toISOString().split('T')[0];
+    </script>
 </body>
+
 </html>

@@ -2,92 +2,135 @@
 session_start();
 require_once '../../includes/db_connect.php';
 
-if (!isset($_GET['order_id'])) {
-    die('Order ID is required');
+// Check if admin is logged in
+if (!isset($_SESSION['admin_id'])) {
+    die("Unauthorized access");
 }
 
-$order_id = $_GET['order_id'];
+// Check if order_id is provided
+if (!isset($_GET['order_id']) || empty($_GET['order_id'])) {
+    die("Order ID is required");
+}
 
-// Get order details
-// Modify the order details query to include weight
-// Modify the query to explicitly select weight
-$stmt = $pdo->prepare("
-    SELECT o.order_id, o.total_amount, o.status, o.pickup_date, o.delivery, o.pickup, 
-           o.priority, o.weight, o.created_at,
-           c.full_name, c.phone, c.email, c.address 
-    FROM orders o
-    JOIN customers c ON o.customer_id = c.customer_id
-    WHERE o.order_id = ?
-");
-$stmt->execute([$order_id]);
-$order = $stmt->fetch();
+$order_id = intval($_GET['order_id']);
 
-// Get order items
-$stmt = $pdo->prepare("
-    SELECT od.*, s.service_name, s.price
-    FROM order_details od
-    JOIN services s ON od.service_id = s.service_id
-    WHERE od.order_id = ?
-");
-$stmt->execute([$order_id]);
-$items = $stmt->fetchAll();
+try {
+    // Get order details
+    $stmt = $pdo->prepare("
+        SELECT o.*, c.full_name, c.phone, c.email, c.address 
+        FROM orders o
+        JOIN customers c ON o.customer_id = c.customer_id
+        WHERE o.order_id = ?
+    ");
+    $stmt->execute([$order_id]);
+    $order = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$order) {
+        die("Order not found");
+    }
+    
+    // Get order services
+    $stmt = $pdo->prepare("
+        SELECT od.*, s.service_name 
+        FROM order_details od
+        JOIN services s ON od.service_id = s.service_id
+        WHERE od.order_id = ?
+    ");
+    $stmt->execute([$order_id]);
+    $services = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Get detergent details if any
+    $detergent = null;
+    if (!empty($order['detergent_id'])) {
+        $stmt = $pdo->prepare("SELECT * FROM inventory WHERE item_id = ?");
+        $stmt->execute([$order['detergent_id']]);
+        $detergent = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    
+    // Calculate total
+    $total = 0;
+    foreach ($services as $service) {
+        $total += $service['subtotal'];
+    }
+    
+    // Add delivery and pickup fees if applicable
+    if ($order['delivery'] == 1) {
+        $total += 25;
+    }
+    if ($order['pickup'] == 1) {
+        $total += 25;
+    }
+    
+    // Add detergent cost if applicable
+    if ($detergent && $order['detergent_qty'] > 0) {
+        $total += 10 * $order['detergent_qty'];
+    }
+    
+} catch (PDOException $e) {
+    die("Database error: " . $e->getMessage());
+}
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Order Receipt #<?php echo $order_id; ?></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt - Order #<?php echo $order_id; ?></title>
     <style>
-        @media print {
-            body {
-                width: 80mm;
-                margin: 0;
-                padding: 10px;
-            }
-        }
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.4;
-            color: #191C24;
+            margin: 0;
+            padding: 20px;
+            font-size: 12px;
+        }
+        .receipt {
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto;
         }
         .header {
             text-align: center;
             margin-bottom: 20px;
-            color: #009CFF;
         }
-        .company-name {
-            font-size: 24px;
-            font-weight: bold;
+        .header h1 {
             margin: 0;
+            font-size: 18px;
         }
-        .receipt-info {
+        .header p {
+            margin: 5px 0;
+        }
+        .customer-info, .order-info {
             margin-bottom: 20px;
         }
-        .customer-info {
-            margin-bottom: 20px;
+        .customer-info h2, .order-info h2, .services h2 {
+            font-size: 14px;
+            margin: 0 0 10px 0;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
         }
-        .items {
+        table {
             width: 100%;
-            margin-bottom: 20px;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
-        .items th, .items td {
-            padding: 5px;
+        table th, table td {
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            padding: 5px;
         }
         .total {
             text-align: right;
-            margin-top: 20px;
             font-weight: bold;
+            margin-top: 10px;
         }
         .footer {
             text-align: center;
             margin-top: 30px;
-            font-size: 12px;
-            color: #757575;
+            font-size: 10px;
         }
         @media print {
+            body {
+                padding: 0;
+            }
             .no-print {
                 display: none;
             }
@@ -95,110 +138,136 @@ $items = $stmt->fetchAll();
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1 class="company-name">DryMe</h1>
-        <p>Laundry Services</p>
-    </div>
-
-    <div class="receipt-info">
-        <p><strong>Receipt #:</strong> <?php echo str_pad($order_id, 6, '0', STR_PAD_LEFT); ?></p>
-        <p><strong>Date:</strong> <?php echo date('M d, Y h:i A'); ?></p>
-    </div>
-
-    <div class="customer-info">
-        <p><strong>Customer:</strong> <?php echo htmlspecialchars($order['full_name']); ?></p>
-        <p><strong>Phone:</strong> <?php echo htmlspecialchars($order['phone']); ?></p>
-        <p><strong>Address:</strong> <?php echo htmlspecialchars($order['address']); ?></p>
-    </div>
-
-    <table class="items">
-        <thead>
-            <tr>
-                <th>Service</th>
-                <th>Price</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($items as $item): ?>
-            <tr>
-                <td><?php echo htmlspecialchars($item['service_name']); ?></td>
-                <td>₱<?php echo number_format($item['price'], 2); ?></td>
-                <td>₱<?php echo number_format($item['subtotal'], 2); ?></td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-
-    <div style="margin: 20px 0; border-top: 1px solid #ddd; padding-top: 10px;">
-        <?php
-        $LOAD_WEIGHT = 7;
-        $BASE_LOAD_PRICE = 120;
-        $EXTRA_KILO_PRICE = 5;
-        $DELIVERY_FEE = 25;
-        $PICKUP_FEE = 25;
+    <div class="receipt">
+        <div class="header">
+            <h1>DryMe Laundry</h1>
+            <p>123 Laundry Street, Clean City</p>
+            <p>Phone: (123) 456-7890</p>
+            <p>Email: info@drymelaundry.com</p>
+        </div>
         
-        $weight = floatval($order['weight']);
-        $baseAmount = $BASE_LOAD_PRICE;
-        $extraAmount = 0;
+        <div class="order-info">
+            <h2>Order Information</h2>
+            <p><strong>Order #:</strong> <?php echo $order_id; ?></p>
+            <p><strong>Date:</strong> <?php echo date('M d, Y h:i A', strtotime($order['created_at'])); ?></p>
+            <p><strong>Status:</strong> <?php echo ucfirst($order['status']); ?></p>
+            <p><strong>Priority:</strong> <?php echo ucfirst($order['priority']); ?></p>
+            <p><strong>Weight:</strong> <?php echo number_format($order['weight'], 2); ?> kg</p>
+        </div>
         
-        if ($weight > $LOAD_WEIGHT) {
-            $extraKilos = $weight - $LOAD_WEIGHT;
-            $extraAmount = $extraKilos * $EXTRA_KILO_PRICE;
-        }
-        
-        $subtotal = $baseAmount + $extraAmount;
-        ?>
-        <p><strong>Weight:</strong> <?php echo number_format($weight, 1); ?> kg</p>
-        <p style="font-size: 12px; color: #666; margin-left: 20px;">
-            Base price for <?php echo $LOAD_WEIGHT; ?>kg: ₱<?php echo number_format($BASE_LOAD_PRICE, 2); ?><br>
-u            <?php if ($weight > $LOAD_WEIGHT): ?>
-                Additional <?php echo number_format($extraKilos, 1); ?>kg × ₱<?php echo $EXTRA_KILO_PRICE; ?>: ₱<?php echo number_format($extraAmount, 2); ?><br>
+        <div class="customer-info">
+            <h2>Customer Information</h2>
+            <p><strong>Name:</strong> <?php echo htmlspecialchars($order['full_name']); ?></p>
+            <p><strong>Phone:</strong> <?php echo htmlspecialchars($order['phone']); ?></p>
+            <?php if (!empty($order['email'])): ?>
+            <p><strong>Email:</strong> <?php echo htmlspecialchars($order['email']); ?></p>
             <?php endif; ?>
-        </p>
-
-        <?php if ($order['delivery'] || $order['pickup']): ?>
-            <p><strong>Additional Services:</strong></p>
-            <p style="font-size: 12px; color: #666; margin-left: 20px;">
-                <?php if ($order['delivery']): ?>
-                    Delivery Service: ₱<?php echo number_format($DELIVERY_FEE, 2); ?><br>
-                <?php endif; ?>
-                <?php if ($order['pickup']): ?>
-                    Pickup Service: ₱<?php echo number_format($PICKUP_FEE, 2); ?><br>
-                <?php endif; ?>
-            </p>
-        <?php endif; ?>
+            <p><strong>Address:</strong> <?php echo htmlspecialchars($order['address']); ?></p>
+        </div>
         
-        <?php if ($order['priority'] !== 'normal'): ?>
-            <p><strong>Priority Service (<?php 
-                echo $order['priority'] === 'express' ? 'Express - 25%' : 'Rush - 50%'; 
-            ?>):</strong> ₱<?php 
-                $baseAmount = $order['total_amount'] / ($order['priority'] === 'express' ? 1.25 : 1.5);
-                $priorityFee = $order['total_amount'] - $baseAmount;
-                echo number_format($priorityFee, 2); 
-            ?></p>
-        <?php endif; ?>
+        <div class="services">
+            <h2>Services</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($services as $service): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($service['service_name']); ?></td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                    </tr>
+                    <?php endforeach; ?>
+                    
+                    <?php 
+                    // Calculate base load price
+                    $baseLoadPrice = $order['weight'] * 30;
+                    ?>
+                    <tr>
+                        <td>Load Weight</td>
+                        <td><?php echo number_format($order['weight'], 2); ?> kg</td>
+                        <td>₱<?php echo number_format($baseLoadPrice, 2); ?></td>
+                    </tr>
+                    
+                    <?php 
+                    // Calculate priority fee
+                    $priorityFee = 0;
+                    if ($order['priority'] == 'express'): 
+                        $priorityFee = $baseLoadPrice * 0.25;
+                    ?>
+                    <tr>
+                        <td>Express Priority (25%)</td>
+                        <td>1</td>
+                        <td>₱<?php echo number_format($priorityFee, 2); ?></td>
+                    </tr>
+                    <?php elseif ($order['priority'] == 'rush'): 
+                        $priorityFee = $baseLoadPrice * 0.5;
+                    ?>
+                    <tr>
+                        <td>Rush Priority (50%)</td>
+                        <td>1</td>
+                        <td>₱<?php echo number_format($priorityFee, 2); ?></td>
+                    </tr>
+                    <?php endif; ?>
+                    
+                    <?php if ($order['delivery'] == 1): ?>
+                    <tr>
+                        <td>Delivery Service</td>
+                        <td>1</td>
+                        <td>₱25.00</td>
+                    </tr>
+                    <?php endif; ?>
+                    
+                    <?php if ($order['pickup'] == 1): ?>
+                    <tr>
+                        <td>Pickup Service</td>
+                        <td>1</td>
+                        <td>₱25.00</td>
+                    </tr>
+                    <?php endif; ?>
+                    
+                    <?php if ($detergent && $order['detergent_qty'] > 0): 
+                        $detergentTotal = 10 * $order['detergent_qty'];
+                    ?>
+                    <tr>
+                        <td>Detergent: <?php echo htmlspecialchars($detergent['name']); ?></td>
+                        <td><?php echo $order['detergent_qty']; ?></td>
+                        <td>₱<?php echo number_format($detergentTotal, 2); ?></td>
+                    </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+            
+            <?php
+            // Calculate total from all services for consistency
+            $calculatedTotal = $baseLoadPrice + $priorityFee;
+            if ($order['delivery'] == 1) $calculatedTotal += 25.00;
+            if ($order['pickup'] == 1) $calculatedTotal += 25.00;
+            if ($detergent && $order['detergent_qty'] > 0) $calculatedTotal += (10.00 * $order['detergent_qty']);
+            ?>
+            
+            <div class="total">
+                <p>Total Amount: ₱<?php echo number_format($calculatedTotal, 2); ?></p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing DryMe Laundry!</p>
+            <p>Please bring this receipt when picking up your laundry.</p>
+            <?php if (!empty($order['special_instructions'])): ?>
+            <p><strong>Special Instructions:</strong> <?php echo htmlspecialchars($order['special_instructions']); ?></p>
+            <?php endif; ?>
+        </div>
     </div>
-
-    <div class="total">
-        <p>Total Amount: ₱<?php echo number_format($order['total_amount'], 2); ?></p>
-    </div>
-
-    <div class="footer">
-        <p>Thank you for choosing DryMe!</p>
-        <p>For inquiries, please call: (123) 456-7890</p>
-    </div>
-
+    
     <div class="no-print" style="text-align: center; margin-top: 20px;">
         <button onclick="window.print()">Print Receipt</button>
         <button onclick="window.close()">Close</button>
     </div>
-
-    <script>
-        // Auto print when page loads
-        window.onload = function() {
-            window.print();
-        }
-    </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 14, 2025 at 11:34 PM
+-- Generation Time: Apr 19, 2025 at 12:52 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -44,7 +44,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`admin_id`, `username`, `password`, `full_name`, `email`, `role`, `created_at`, `updated_at`, `profile_picture`) VALUES
-(1, 'admin', 'admin123', 'Allain', 'admin@dryme.com', 'admin', '2025-04-13 02:06:20', '2025-04-13 15:10:21', 'admin_1_1744557021.jpg');
+(1, 'admin', 'admin123', 'Allain Admin', 'admin@dryme.com', 'admin', '2025-04-13 02:06:20', '2025-04-19 10:31:21', 'admin_1_1745058681.jpg');
 
 -- --------------------------------------------------------
 
@@ -103,7 +103,7 @@ INSERT INTO `inventory` (`item_id`, `name`, `category`, `quantity`, `unit`, `min
 (1, 'Ariel Powder', 'supply', 100.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:15:55', '2025-04-13 14:15:55'),
 (2, 'Tide Powder', 'supply', 100.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:16:16', '2025-04-13 14:16:16'),
 (3, 'Surf Powder', 'supply', 100.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:16:28', '2025-04-13 14:16:28'),
-(4, 'Ariel Liquid Detergent', 'supply', 250.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:17:05', '2025-04-13 14:17:05'),
+(4, 'Ariel Liquid Detergent', 'supply', 250.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:17:05', '2025-04-19 10:01:21'),
 (5, 'Surf Liquid Detergent', 'supply', 250.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:17:24', '2025-04-13 14:17:24'),
 (6, 'Tide Liquid Detergent', 'supply', 250.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:17:40', '2025-04-13 14:17:40'),
 (7, 'Breeze Powder', 'supply', 100.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:18:15', '2025-04-13 14:18:15'),
@@ -131,21 +131,6 @@ CREATE TABLE `inventory_transactions` (
   `created_by` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `inventory_transactions`
---
-
-INSERT INTO `inventory_transactions` (`transaction_id`, `item_id`, `order_id`, `transaction_type`, `quantity`, `transaction_date`, `notes`, `created_by`) VALUES
-(1, 1, NULL, 'purchase', 100.00, '2025-04-13 14:15:55', NULL, 1),
-(2, 2, NULL, 'purchase', 100.00, '2025-04-13 14:16:16', NULL, 1),
-(3, 3, NULL, 'purchase', 100.00, '2025-04-13 14:16:28', NULL, 1),
-(4, 4, NULL, 'purchase', 250.00, '2025-04-13 14:17:05', NULL, 1),
-(5, 5, NULL, 'purchase', 250.00, '2025-04-13 14:17:24', NULL, 1),
-(6, 6, NULL, 'purchase', 250.00, '2025-04-13 14:17:40', NULL, 1),
-(7, 7, NULL, 'purchase', 100.00, '2025-04-13 14:18:15', NULL, 1),
-(8, 8, NULL, 'purchase', 250.00, '2025-04-13 14:18:37', NULL, 1),
-(9, 12, NULL, 'purchase', 500.00, '2025-04-13 14:22:07', NULL, 1);
-
 -- --------------------------------------------------------
 
 --
@@ -155,7 +140,7 @@ INSERT INTO `inventory_transactions` (`transaction_id`, `item_id`, `order_id`, `
 CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL,
   `customer_id` int(11) DEFAULT NULL,
-  `total_amount` decimal(10,2) NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `status` enum('pending','processing','completed','cancelled') DEFAULT 'pending',
   `pickup_date` date DEFAULT NULL,
   `delivery_date` date DEFAULT NULL,
@@ -163,23 +148,39 @@ CREATE TABLE `orders` (
   `priority` varchar(20) DEFAULT 'normal',
   `delivery` tinyint(1) DEFAULT 0,
   `pickup` tinyint(1) DEFAULT 0,
-  `weight` decimal(10,2) NOT NULL DEFAULT 0.00
+  `weight` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `admin_id` int(11) DEFAULT NULL,
+  `special_instructions` text DEFAULT NULL,
+  `detergent_id` int(11) DEFAULT NULL,
+  `detergent_qty` int(11) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `customer_id`, `total_amount`, `status`, `pickup_date`, `delivery_date`, `created_at`, `priority`, `delivery`, `pickup`, `weight`) VALUES
-(4, 1, 412.50, 'completed', '0000-00-00', '2025-04-13', '2025-04-13 04:26:05', 'normal', 0, 0, 0.00),
-(5, 1, 217.50, 'completed', '0000-00-00', '2025-04-13', '2025-04-13 04:31:56', 'normal', 0, 0, 0.00),
-(6, 1, 217.50, 'completed', '0000-00-00', '2025-04-13', '2025-04-13 04:32:22', 'normal', 0, 0, 0.00),
-(7, 1, 262.50, 'completed', '2025-04-13', '2025-04-13', '2025-04-13 04:37:41', 'normal', 0, 0, 0.00),
-(8, 1, 180.00, 'completed', '0000-00-00', '0000-00-00', '2025-04-13 15:18:39', 'express', 0, 0, 0.00),
-(9, 1, 60.00, 'pending', '2025-04-15', NULL, '2025-04-14 20:36:53', 'normal', 1, 0, 0.00),
-(10, 1, 145.00, 'pending', '2025-04-15', NULL, '2025-04-14 20:41:34', 'normal', 1, 0, 0.00),
-(11, 1, 265.00, 'pending', '2025-04-15', NULL, '2025-04-14 20:46:46', 'extra_rush', 1, 0, 7.00),
-(12, 1, 180.00, 'pending', '2025-04-15', NULL, '2025-04-14 20:49:48', 'express', 0, 0, 7.00);
+INSERT INTO `orders` (`order_id`, `customer_id`, `total_amount`, `status`, `pickup_date`, `delivery_date`, `created_at`, `priority`, `delivery`, `pickup`, `weight`, `admin_id`, `special_instructions`, `detergent_id`, `detergent_qty`) VALUES
+(5, 1, 262.50, 'processing', '0000-00-00', '0000-00-00', '2025-04-19 10:03:47', 'rush', 0, 0, 7.00, NULL, '', NULL, 1),
+(6, 1, 175.00, 'completed', '0000-00-00', '0000-00-00', '2025-04-19 10:43:45', 'normal', 0, 0, 7.00, NULL, '', NULL, 1);
+
+--
+-- Triggers `orders`
+--
+DELIMITER $$
+CREATE TRIGGER `after_order_complete` AFTER UPDATE ON `orders` FOR EACH ROW BEGIN
+    IF NEW.status = 'completed' AND OLD.status != 'completed' THEN
+        INSERT INTO sales_records (order_id, customer_id, admin_id, amount_paid)
+        SELECT 
+            NEW.order_id,
+            NEW.customer_id,
+            NEW.admin_id,
+            NEW.total_amount
+        FROM orders
+        WHERE order_id = NEW.order_id;
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -201,15 +202,9 @@ CREATE TABLE `order_details` (
 --
 
 INSERT INTO `order_details` (`order_detail_id`, `order_id`, `service_id`, `quantity`, `price`, `subtotal`) VALUES
-(1, 4, 1, 8, 0.00, 0.00),
-(2, 4, 2, 8, 0.00, 0.00),
-(3, 5, 2, 7, 0.00, 0.00),
-(4, 6, 1, 7, 0.00, 0.00),
-(5, 6, 2, 7, 0.00, 0.00),
-(6, 7, 1, 8, 0.00, 0.00),
-(7, 7, 2, 8, 0.00, 0.00),
-(8, 8, 1, 5, 0.00, 0.00),
-(9, 8, 2, 5, 0.00, 0.00);
+(1, 5, 1, 7, 30.00, 210.00),
+(2, 5, 2, 7, 25.00, 175.00),
+(3, 6, 2, 7, 25.00, 175.00);
 
 -- --------------------------------------------------------
 
@@ -220,7 +215,7 @@ INSERT INTO `order_details` (`order_detail_id`, `order_id`, `service_id`, `quant
 CREATE TABLE `sales_records` (
   `sale_id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
-  `admin_id` int(11) NOT NULL,
+  `admin_id` int(11) DEFAULT NULL,
   `customer_id` int(11) NOT NULL,
   `amount_paid` decimal(10,2) NOT NULL,
   `payment_date` timestamp NOT NULL DEFAULT current_timestamp()
@@ -231,8 +226,8 @@ CREATE TABLE `sales_records` (
 --
 
 INSERT INTO `sales_records` (`sale_id`, `order_id`, `admin_id`, `customer_id`, `amount_paid`, `payment_date`) VALUES
-(1, 4, 1, 1, 412.50, '2025-04-13 15:04:07'),
-(2, 7, 1, 1, 262.50, '2025-04-13 15:04:07');
+(2, 5, NULL, 1, 262.50, '2025-04-19 10:13:47'),
+(3, 6, NULL, 1, 175.00, '2025-04-19 10:48:22');
 
 -- --------------------------------------------------------
 
@@ -253,8 +248,8 @@ CREATE TABLE `services` (
 --
 
 INSERT INTO `services` (`service_id`, `service_name`, `description`, `price`, `status`) VALUES
-(1, 'Dry Cleaning', 'Professional dry cleaning service', 0.00, 'active'),
-(2, 'Wash & Fold', 'Regular washing and folding service', 0.00, 'active'),
+(1, 'Cloth Ironing', 'Professional dry cleaning service', 30.00, 'active'),
+(2, 'Wash, Dry, & Fold', 'Regular washing and folding service', 25.00, 'active'),
 (3, 'Curtain Cleaning', 'Specialized curtain cleaning service', 10.00, 'active'),
 (4, 'Suit Cleaning', 'Professional suit and formal wear cleaning', 25.00, 'active'),
 (5, 'Delivery Service', 'Door-to-door delivery service', 25.00, 'active'),
@@ -300,7 +295,9 @@ ALTER TABLE `inventory_transactions`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`order_id`),
-  ADD KEY `customer_id` (`customer_id`);
+  ADD KEY `customer_id` (`customer_id`),
+  ADD KEY `admin_id` (`admin_id`),
+  ADD KEY `detergent_id` (`detergent_id`);
 
 --
 -- Indexes for table `order_details`
@@ -351,25 +348,25 @@ ALTER TABLE `inventory`
 -- AUTO_INCREMENT for table `inventory_transactions`
 --
 ALTER TABLE `inventory_transactions`
-  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `order_details`
 --
 ALTER TABLE `order_details`
-  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `sales_records`
 --
 ALTER TABLE `sales_records`
-  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `services`
@@ -393,7 +390,10 @@ ALTER TABLE `inventory_transactions`
 -- Constraints for table `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`);
+  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`),
+  ADD CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`admin_id`),
+  ADD CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`detergent_id`) REFERENCES `inventory` (`item_id`),
+  ADD CONSTRAINT `orders_ibfk_4` FOREIGN KEY (`detergent_id`) REFERENCES `inventory` (`item_id`);
 
 --
 -- Constraints for table `order_details`
@@ -406,9 +406,9 @@ ALTER TABLE `order_details`
 -- Constraints for table `sales_records`
 --
 ALTER TABLE `sales_records`
-  ADD CONSTRAINT `sales_records_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
-  ADD CONSTRAINT `sales_records_ibfk_2` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`admin_id`),
-  ADD CONSTRAINT `sales_records_ibfk_3` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`);
+  ADD CONSTRAINT `sales_records_admin_fk` FOREIGN KEY (`admin_id`) REFERENCES `admins` (`admin_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `sales_records_customer_fk` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`customer_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `sales_records_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

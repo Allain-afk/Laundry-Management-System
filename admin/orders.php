@@ -21,14 +21,33 @@ $customers = $stmt->fetchAll();
 $stmt = $pdo->query("SELECT * FROM services");
 $services = $stmt->fetchAll();
 
+// Add query to fetch detergents
+$stmt = $pdo->query("SELECT * FROM inventory WHERE category = 'supply' AND name LIKE '%detergent%' AND status = 'active'");
+$detergents = $stmt->fetchAll();
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
+        // Check detergent inventory if selected
+        if (!empty($_POST['detergent_id']) && !empty($_POST['detergent_qty'])) {
+            $stmt = $pdo->prepare("SELECT quantity FROM inventory WHERE item_id = ? AND status = 'active' FOR UPDATE");
+            $stmt->execute([$_POST['detergent_id']]);
+            $inventory = $stmt->fetch();
+
+            if (!$inventory || $inventory['quantity'] < $_POST['detergent_qty']) {
+                throw new Exception("Insufficient detergent inventory");
+            }
+
+            // Update inventory
+            $stmt = $pdo->prepare("UPDATE inventory SET quantity = quantity - ? WHERE item_id = ?");
+            $stmt->execute([$_POST['detergent_qty'], $_POST['detergent_id']]);
+        }
+
         // Insert into orders table
-        $stmt = $pdo->prepare("INSERT INTO orders (customer_id, total_amount, status, pickup_date, delivery_date, delivery, pickup, priority, created_at) 
-                              VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+        $stmt = $pdo->prepare("INSERT INTO orders (customer_id, total_amount, status, pickup_date, delivery_date, delivery, pickup, priority, weight, special_instructions, detergent_id, detergent_qty, created_at) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
         $stmt->execute([
             $_POST['customer_id'],
             $_POST['total_amount'],
@@ -37,8 +56,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['delivery_date'],
             isset($_POST['delivery']) ? 1 : 0,
             isset($_POST['pickup']) ? 1 : 0,
-            $_POST['priority']
+            $_POST['priority'],
+            $_POST['weight'],
+            $_POST['special_instructions'] ?? null,
+            $_POST['detergent_id'] ?: null,
+            $_POST['detergent_qty'] ?: 0
         ]);
+
+        // Get the last inserted order ID
         $order_id = $pdo->lastInsertId();
 
         // Insert into order_details table for each selected service
@@ -60,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $subtotal = $quantity * $price;
                     
                     $stmt->execute([
-                        $order_id,
+                        $order_id,  // Use the obtained order_id
                         $service_id,
                         $quantity,
                         $price,
@@ -249,6 +274,28 @@ $orders = $stmt->fetchAll();
                                             <input type="number" name="weight" class="form-control" step="0.1" min="0" required>
                                             <small class="form-text text-muted">Standard load is 7kg (₱120.00). Additional kilos are ₱5.00 each.</small>
                                         </div>
+
+                                        <!-- Move Detergent Selection here -->
+                                        <div class="mt-3">
+                                            <div class="border rounded p-3">
+                                                <label class="form-label">Detergent Selection</label>
+                                                <div class="mb-3">
+                                                    <select class="form-select" name="detergent_id" id="detergentSelect">
+                                                        <option value="">No detergent needed</option>
+                                                        <?php foreach ($detergents as $detergent): ?>
+                                                            <option value="<?php echo $detergent['item_id']; ?>" 
+                                                                    data-quantity="<?php echo $detergent['quantity']; ?>">
+                                                                <?php echo htmlspecialchars($detergent['name']); ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                                <div id="detergentQtyDiv" style="display: none;">
+                                                    <label class="form-label">Number of Sachets:</label>
+                                                    <input type="number" name="detergent_qty" class="form-control" min="1" value="1">
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="col-md-6">
@@ -263,7 +310,7 @@ $orders = $stmt->fetchAll();
                                                 <label class="form-check-label">Express (24 hours)</label>
                                             </div>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="priority" value="express">
+                                                <input class="form-check-input" type="radio" name="priority" value="rush">
                                                 <label class="form-check-label">Rush (~3 hours)</label>
                                             </div>
                                         </div>
@@ -279,6 +326,10 @@ $orders = $stmt->fetchAll();
                                                 <label class="form-check-label">Pickup Service (₱25)</label>
                                             </div>
                                         </div>
+                                        <div class="border rounded p-3">
+                                                    <label class="form-label">Special Instructions</label>
+                                                    <textarea class="form-control" name="special_instructions" rows="2" placeholder="Enter any special instructions or notes"></textarea>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -291,11 +342,6 @@ $orders = $stmt->fetchAll();
                                         <label class="form-label">Delivery Date</label>
                                         <input type="date" name="delivery_date" class="form-control">
                                     </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Special Instructions</label>
-                                    <textarea class="form-control" rows="3" placeholder="Enter any special instructions or notes"></textarea>
                                 </div>
 
                                 <div class="row mb-3">
@@ -366,7 +412,16 @@ $orders = $stmt->fetchAll();
                                                     <?php echo ucfirst($order['status']); ?>
                                                 </span>
                                             </td>
-                                            <td><?php echo date('M d, Y', strtotime($order['pickup_date'])); ?></td>
+                                            <td>
+                                                <?php
+                                                $pickup_date = $order['pickup_date'];
+                                                if (empty($pickup_date) || $pickup_date === '0000-00-00') {
+                                                    echo 'N/A';
+                                                } else {
+                                                    echo date('M d, Y', strtotime($pickup_date));
+                                                }
+                                                ?>
+                                            </td>
                                             <td>
                                                 <div class="btn-group">
                                                     <button class="btn btn-sm btn-info" onclick="showOrderDetails(<?php echo $order['order_id']; ?>)">
@@ -420,77 +475,48 @@ $orders = $stmt->fetchAll();
                                 </div>
                             </div>
                         </div>
+
+                        
             <!-- Order Details Modal Start -->
+            <!-- Order Details Modal -->
             <div class="modal fade" id="orderDetailsModal" tabindex="-1">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title">Order Details</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="container-fluid">
-                                <!-- Customer Details -->
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <h6 class="border-bottom pb-2">Customer Details</h6>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <p><strong>Name:</strong> <span id="customerName"></span></p>
-                                                <p><strong>Phone:</strong> <span id="customerPhone"></span></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Email:</strong> <span id="customerEmail"></span></p>
-                                                <p><strong>Address:</strong> <span id="customerAddress"></span></p>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Customer Information</h6>
+                                    <p><strong>Name:</strong> <span id="customerName"></span></p>
+                                    <p><strong>Phone:</strong> <span id="customerPhone"></span></p>
+                                    <p><strong>Email:</strong> <span id="customerEmail"></span></p>
+                                    <p><strong>Address:</strong> <span id="customerAddress"></span></p>
                                 </div>
-
-                                <!-- Laundry Notes -->
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <h6 class="border-bottom pb-2">Laundry Notes</h6>
-                                        <div class="alert alert-info" id="laundryNotes">
-                                            <!-- Notes will be inserted here -->
-                                        </div>
-                                    </div>
+                                <div class="col-md-6">
+                                    <h6>Order Information</h6>
+                                    <div id="orderDetails"></div>
                                 </div>
-
-                                <!-- Item List -->
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <h6 class="border-bottom pb-2">Item List</h6>
-                                        <div class="table-responsive">
-                                            <table class="table table-bordered">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Item</th>
-                                                        <th>Quantity</th>
-                                                        <th>Service</th>
-                                                        <th>Notes</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="itemList">
-                                                    <!-- Items will be inserted here -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
+                            </div>
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <h6>Services</h6>
+                                    <table class="table" id="servicesTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Service</th>
+                                                <th>Quantity</th>
+                                                <th>Price</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <!-- Action Buttons -->
-                            <button type="button" class="btn btn-warning" id="updateStatus">
-                                <i class="fa fa-refresh me-2"></i>Update Status
-                            </button>
-                            <button type="button" class="btn btn-info" id="printReceipt">
-                                <i class="fa fa-print me-2"></i>Print Receipt
-                            </button>
-                            <button type="button" class="btn btn-success" id="notifyCustomer">
-                                <i class="fa fa-bell me-2"></i>Notify Customer
-                            </button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
@@ -532,44 +558,81 @@ $orders = $stmt->fetchAll();
 </html>
 <script>
 function showOrderDetails(orderId) {
-    // Fetch order details using AJAX
     $.ajax({
         url: 'helpers/get_order_details.php',
         type: 'GET',
         data: { order_id: orderId },
+        dataType: 'json',
         success: function(response) {
-            const data = JSON.parse(response);
+            if (response.error) {
+                alert(response.error);
+                return;
+            }
             
-            // Populate modal with order details
-            $('#customerName').text(data.customer.full_name);
-            $('#customerPhone').text(data.customer.phone);
-            $('#customerEmail').text(data.customer.email);
-            $('#customerAddress').text(data.customer.address);
-            $('#laundryNotes').html(data.order.special_instructions || 'No special instructions');
+            // Fill customer information
+            $('#customerName').text(response.customer.full_name);
+            $('#customerPhone').text(response.customer.phone);
+            $('#customerEmail').text(response.customer.email || 'N/A');
+            $('#customerAddress').text(response.customer.address);
             
-            // Populate items table
-            let itemsHtml = '';
-            data.items.forEach(item => {
-                itemsHtml += `<tr>
-                    <td>${item.service_name}</td>
-                    <td>${item.quantity}</td>
-                    <td>${item.price}</td>
-                    <td>${item.notes || '-'}</td>
-                </tr>`;
+            // Fill order details
+            var orderDetailsHtml = '';
+            orderDetailsHtml += '<p><strong>Order ID:</strong> #' + response.order.order_id + '</p>';
+            orderDetailsHtml += '<p><strong>Date:</strong> ' + formatDate(response.order.created_at) + '</p>';
+            orderDetailsHtml += '<p><strong>Status:</strong> ' + capitalizeFirstLetter(response.order.status) + '</p>';
+            orderDetailsHtml += '<p><strong>Priority:</strong> ' + capitalizeFirstLetter(response.order.priority) + '</p>';
+            orderDetailsHtml += '<p><strong>Weight:</strong> ' + response.order.weight_formatted + ' kg</p>';
+            
+            // Use the calculated total for consistency
+            orderDetailsHtml += '<p><strong>Total Amount:</strong> ₱' + response.order.calculated_total_formatted + '</p>';
+            
+            // Add pickup and delivery dates
+            var pickupDate = response.order.pickup_date;
+            var deliveryDate = response.order.delivery_date;
+            
+            orderDetailsHtml += '<p><strong>Pickup Date:</strong> ' + (pickupDate && pickupDate !== '0000-00-00' ? formatDate(pickupDate) : 'N/A') + '</p>';
+            orderDetailsHtml += '<p><strong>Delivery Date:</strong> ' + (deliveryDate && deliveryDate !== '0000-00-00' ? formatDate(deliveryDate) : 'N/A') + '</p>';
+            
+            // Add special instructions
+            var specialInstructions = response.order.special_instructions;
+            orderDetailsHtml += '<p><strong>Special Instructions:</strong> ' + (specialInstructions ? specialInstructions : 'None') + '</p>';
+            
+            $('#orderDetails').html(orderDetailsHtml);
+            
+            // Fill services table
+            var servicesHtml = '';
+            
+            // Regular services
+            response.services.forEach(function(service) {
+                servicesHtml += '<tr>';
+                servicesHtml += '<td>' + service.service_name + '</td>';
+                servicesHtml += '<td>N/A</td>';
+                servicesHtml += '<td>N/A</td>';
+                servicesHtml += '</tr>';
             });
-            $('#itemList').html(itemsHtml);
             
-            // Show modal
+            // Additional services
+            if (response.additional_services && response.additional_services.length > 0) {
+                response.additional_services.forEach(function(service) {
+                    servicesHtml += '<tr>';
+                    servicesHtml += '<td>' + service.name + '</td>';
+                    servicesHtml += '<td>' + service.quantity_formatted + '</td>';
+                    servicesHtml += '<td>₱' + service.price_formatted + '</td>';
+                    servicesHtml += '</tr>';
+                });
+            }
+            
+            $('#servicesTable tbody').html(servicesHtml);
+            
+            // Show the modal
             $('#orderDetailsModal').modal('show');
         },
         error: function() {
-            alert('Error fetching order details');
+            alert('Error fetching order details. Please try again.');
         }
     });
 }
-</script>
 
-<script>
 function updateOrderStatus(orderId, currentStatus) {
     $('#updateOrderId').val(orderId);
     $('#updateOrderStatus').val(currentStatus);
@@ -577,102 +640,109 @@ function updateOrderStatus(orderId, currentStatus) {
 }
 
 function saveOrderStatus() {
-    const orderId = $('#updateOrderId').val();
-    const status = $('#updateOrderStatus').val();
-
+    var orderId = $('#updateOrderId').val();
+    var status = $('#updateOrderStatus').val();
+    
     $.ajax({
         url: 'helpers/update_order_status.php',
         type: 'POST',
-        data: {
+        data: { 
             order_id: orderId,
             status: status
         },
+        dataType: 'json',
         success: function(response) {
-            const data = JSON.parse(response);
-            if (data.success) {
+            if (response.success) {
+                alert(response.message);
                 $('#updateStatusModal').modal('hide');
                 // Reload the page to show updated status
                 location.reload();
             } else {
-                alert('Error updating status: ' + data.message);
+                alert(response.message);
             }
         },
         error: function() {
-            alert('Error updating order status');
+            alert('Error updating order status. Please try again.');
         }
     });
 }
-</script>
 
-<script>
+function printReceipt(orderId) {
+    window.open('helpers/print_receipt.php?order_id=' + orderId, '_blank', 'width=800,height=600');
+}
+
+// Helper function to format date
+function formatDate(dateString) {
+    var date = new Date(dateString);
+    var options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
+
+// Helper function to capitalize first letter
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// Initialize the page
 $(document).ready(function() {
-    const LOAD_WEIGHT = 7; // Default load weight in kilos
-    const BASE_LOAD_PRICE = 120; // Price per load
-    const EXTRA_KILO_PRICE = 5; // Additional price per extra kilo
-    const DELIVERY_FEE = 25;
-    const PICKUP_FEE = 25;
-
+    // Show/hide detergent quantity field based on selection
+    $('#detergentSelect').change(function() {
+        if ($(this).val()) {
+            $('#detergentQtyDiv').show();
+        } else {
+            $('#detergentQtyDiv').hide();
+        }
+    });
+    
+    // Show/hide pickup date field based on checkbox
+    $('.pickup-check').change(function() {
+        if ($(this).is(':checked')) {
+            $('.pickup-date-div').show();
+        } else {
+            $('.pickup-date-div').hide();
+        }
+    });
+    
+    // Show/hide delivery date field based on checkbox
+    $('.delivery-check').change(function() {
+        if ($(this).is(':checked')) {
+            $('.delivery-date-div').show();
+        } else {
+            $('.delivery-date-div').hide();
+        }
+    });
+    
+    // Hide pickup and delivery date fields initially
+    $('.pickup-date-div, .delivery-date-div').hide();
+    
+    // Calculate total amount based on selected services and weight
+    $('input[name="weight"], .service-check, .delivery-check, .pickup-check').on('change', function() {
+        calculateTotal();
+    });
+    
     function calculateTotal() {
-        let total = 0;
-        const weight = parseFloat($('input[name="weight"]').val()) || 0;
+        var total = 0;
+        var weight = parseFloat($('input[name="weight"]').val()) || 0;
         
-        // Calculate base load price only once
-        let loadPrice = BASE_LOAD_PRICE;
-        if (weight > LOAD_WEIGHT) {
-            const extraKilos = weight - LOAD_WEIGHT;
-            loadPrice += (extraKilos * EXTRA_KILO_PRICE);
-        }
-
-        // Add load price only once
-        total += loadPrice;
-
-        // Add service prices separately
+        // Add service costs
         $('.service-check:checked').each(function() {
-            const servicePrice = parseFloat($(this).data('price'));
-            total += servicePrice; // Only add the service price, not the load price
+            var price = parseFloat($(this).data('price'));
+            total += price * weight;
         });
-
-        // Add delivery/pickup fees
-        if ($('input[name="delivery"]').is(':checked')) {
-            total += DELIVERY_FEE;
+        
+        // Add delivery cost if selected
+        if ($('.delivery-check').is(':checked')) {
+            total += 25;
         }
-        if ($('input[name="pickup"]').is(':checked')) {
-            total += PICKUP_FEE;
+        
+        // Add pickup cost if selected
+        if ($('.pickup-check').is(':checked')) {
+            total += 25;
         }
-
-        // Add priority charges
-        const priority = $('input[name="priority"]:checked').val();
-        if (priority === 'express') {
-            total *= 1.25; // 25% extra for express
-        } else if (priority === 'rush') {
-            total *= 1.5; // 50% extra for rush
-        }
-
+        
+        // Update hidden total amount field
         $('#total_amount').val(total.toFixed(2));
-        return total;
     }
-
-    // Handle pickup/delivery date requirements
-    function toggleDateFields() {
-        const pickupChecked = $('.pickup-check').is(':checked');
-        const deliveryChecked = $('.delivery-check').is(':checked');
-
-        $('.pickup-date-div input').prop('required', pickupChecked);
-        $('.delivery-date-div input').prop('required', deliveryChecked);
-
-        $('.pickup-date-div').toggle(pickupChecked);
-        $('.delivery-date-div').toggle(deliveryChecked);
-    }
-
-    // Initial state
-    toggleDateFields();
-
-    // Event listeners
-    $('.service-check, input[name="weight"], input[name="priority"], .delivery-check, .pickup-check').on('change', calculateTotal);
-    $('.delivery-check, .pickup-check').on('change', toggleDateFields);
-
-    // Add helper text for weight input
-    $('input[name="weight"]').after('<small class="form-text text-muted">Standard load is 7kg (₱120.00). Additional kilos are ₱5.00 each.</small>');
 });
 </script>
 
@@ -688,5 +758,150 @@ $(document).ready(function() {
         const orderId = $('#updateOrderId').val();
         printReceipt(orderId);
     });
+});
+</script>
+
+<?php
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $pdo->beginTransaction();
+
+        // Check detergent inventory if selected
+        if (!empty($_POST['detergent_id']) && !empty($_POST['detergent_qty'])) {
+            $stmt = $pdo->prepare("SELECT quantity FROM inventory WHERE item_id = ? AND status = 'active' FOR UPDATE");
+            $stmt->execute([$_POST['detergent_id']]);
+            $inventory = $stmt->fetch();
+
+            if (!$inventory || $inventory['quantity'] < $_POST['detergent_qty']) {
+                throw new Exception("Insufficient detergent inventory");
+            }
+
+            // Update inventory
+            $stmt = $pdo->prepare("UPDATE inventory SET quantity = quantity - ? WHERE item_id = ?");
+            $stmt->execute([$_POST['detergent_qty'], $_POST['detergent_id']]);
+        }
+
+        // Insert into orders table
+        $stmt = $pdo->prepare("INSERT INTO orders (customer_id, total_amount, status, pickup_date, delivery_date, delivery, pickup, priority, weight, special_instructions, detergent_id, detergent_qty, created_at) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+        $stmt->execute([
+            $_POST['customer_id'],
+            $_POST['total_amount'],
+            $_POST['status'],
+            $_POST['pickup_date'],
+            $_POST['delivery_date'],
+            isset($_POST['delivery']) ? 1 : 0,
+            isset($_POST['pickup']) ? 1 : 0,
+            $_POST['priority'],
+            $_POST['weight'],
+            $_POST['special_instructions'] ?? null,
+            $_POST['detergent_id'] ?: null,
+            $_POST['detergent_qty'] ?: 0
+        ]);
+
+        // Get the last inserted order ID
+        $order_id = $pdo->lastInsertId();
+
+        // Insert into order_details table for each selected service
+        if (isset($_POST['services'])) {
+            $stmt = $pdo->prepare("INSERT INTO order_details (order_id, service_id, quantity, price, subtotal) 
+                                  VALUES (?, ?, ?, ?, ?)");
+            
+            // First get the service prices
+            $serviceStmt = $pdo->prepare("SELECT service_id, price FROM services WHERE service_id = ?");
+            
+            foreach ($_POST['services'] as $service_id) {
+                // Get the service price
+                $serviceStmt->execute([$service_id]);
+                $service = $serviceStmt->fetch();
+                
+                if ($service) {
+                    $quantity = $_POST['weight'];
+                    $price = $service['price'];
+                    $subtotal = $quantity * $price;
+                    
+                    $stmt->execute([
+                        $order_id,  // Use the obtained order_id
+                        $service_id,
+                        $quantity,
+                        $price,
+                        $subtotal
+                    ]);
+                }
+            }
+        }
+
+        $pdo->commit();
+        $_SESSION['success'] = "Order created successfully!";
+        header("Location: orders.php");
+        exit();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        $_SESSION['error'] = "Error creating order: " . $e->getMessage();
+    }
+}
+?>
+
+<script>
+// Add these constants at the top of your script section
+const BASE_PRICE_PER_KG = 30;
+const DELIVERY_FEE = 25;
+const PICKUP_FEE = 25;
+const DETERGENT_PRICE = 10;
+
+function calculateTotal() {
+    let total = 0;
+    const weight = parseFloat($('input[name="weight"]').val()) || 0;
+    
+    // Calculate base load price
+    const baseLoadPrice = weight * BASE_PRICE_PER_KG;
+    total = baseLoadPrice;
+    
+    // Add priority charges
+    const priority = $('input[name="priority"]:checked').val();
+    if (priority === 'express') {
+        total += (baseLoadPrice * 0.25); // 25% extra for express
+    } else if (priority === 'rush') {
+        total += (baseLoadPrice * 0.5); // 50% extra for rush
+    }
+    
+    // Add delivery/pickup fees
+    if ($('.delivery-check').is(':checked')) {
+        total += DELIVERY_FEE;
+    }
+    if ($('.pickup-check').is(':checked')) {
+        total += PICKUP_FEE;
+    }
+    
+    // Add detergent cost
+    const detergentId = $('#detergentSelect').val();
+    if (detergentId) {
+        const detergentQty = parseInt($('input[name="detergent_qty"]').val()) || 0;
+        total += (detergentQty * DETERGENT_PRICE);
+    }
+    
+    $('#total_amount').val(total.toFixed(2));
+    return total;
+}
+
+// Update event handlers to use the new calculateTotal function
+$(document).ready(function() {
+    // Show/hide detergent quantity field based on selection
+    $('#detergentSelect').change(function() {
+        if ($(this).val()) {
+            $('#detergentQtyDiv').show();
+        } else {
+            $('#detergentQtyDiv').hide();
+        }
+        calculateTotal();
+    });
+    
+    // Calculate total when these inputs change
+    $('input[name="weight"], .service-check, .delivery-check, .pickup-check, input[name="priority"], input[name="detergent_qty"]').on('change', function() {
+        calculateTotal();
+    });
+    
+    // Initial calculation
+    calculateTotal();
 });
 </script>

@@ -21,57 +21,54 @@ $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 // Prepare the date condition based on the selected period
 switch ($period) {
     case 'daily':
-        $date_condition = "DATE(o.created_at) = CURDATE()";
+        $date_condition = "DATE(sr.payment_date) = CURDATE()";
         break;
     case 'monthly':
-        $date_condition = "MONTH(o.created_at) = MONTH(CURDATE()) AND YEAR(o.created_at) = YEAR(CURDATE())";
+        $date_condition = "MONTH(sr.payment_date) = MONTH(CURDATE()) AND YEAR(sr.payment_date) = YEAR(CURDATE())";
         break;
     case 'yearly':
-        $date_condition = "YEAR(o.created_at) = YEAR(CURDATE())";
+        $date_condition = "YEAR(sr.payment_date) = YEAR(CURDATE())";
         break;
     case 'lifetime':
         $date_condition = "1=1"; // No date restriction
         break;
     case 'custom':
-        $date_condition = "DATE(o.created_at) BETWEEN :start_date AND :end_date";
+        $date_condition = "DATE(sr.payment_date) BETWEEN :start_date AND :end_date";
         break;
     default:
-        $date_condition = "DATE(o.created_at) = CURDATE()";
+        $date_condition = "DATE(sr.payment_date) = CURDATE()";
 }
 
 // Fetch sales data
 try {
-    $query = "SELECT o.order_id as sale_id, 
-              a.full_name as admin_name,
-              c.full_name as customer_name,
-              o.total_amount as amount_paid,
-              o.created_at as payment_date,
+    $query = "SELECT 
+              o.order_id,
+              o.total_amount,
               o.status as order_status,
-              o.order_id
+              o.created_at,
+              c.full_name as customer_name,
+              sr.sale_id,
+              sr.amount_paid,
+              sr.payment_date,
+              a.full_name as admin_name
               FROM orders o
               INNER JOIN customers c ON o.customer_id = c.customer_id
-              INNER JOIN admins a ON a.admin_id = o.admin_id
-              WHERE o.status = 'completed'
-              AND $date_condition
+              LEFT JOIN sales_records sr ON o.order_id = sr.order_id
+              LEFT JOIN admins a ON sr.admin_id = a.admin_id
+              WHERE o.status = 'completed' 
               ORDER BY o.created_at DESC";
-    
-    if ($period === 'custom') {
-        $stmt = $pdo->prepare($query);
-        $stmt->bindValue(':start_date', $start_date);
-        $stmt->bindValue(':end_date', $end_date);
-    } else {
-        $stmt = $pdo->prepare($query);
-    }
-    
+
+    $stmt = $pdo->prepare($query);
     $stmt->execute();
     $sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Also update the total sales query to match
-    $total_query = "SELECT COALESCE(SUM(total_amount), 0) as total 
-                    FROM orders 
-                    WHERE status = 'completed'
+
+    // Update total sales query to use sales_records table
+    $total_query = "SELECT COALESCE(SUM(sr.amount_paid), 0) as total 
+                    FROM sales_records sr
+                    INNER JOIN orders o ON sr.order_id = o.order_id
+                    WHERE o.status = 'completed'
                     AND $date_condition";
-    
+
     if ($period === 'custom') {
         $stmt = $pdo->prepare($total_query);
         $stmt->execute([
@@ -81,9 +78,8 @@ try {
     } else {
         $stmt = $pdo->query($total_query);
     }
-    
+
     $total_sales = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-    
 } catch (PDOException $e) {
     error_log("Sales query error: " . $e->getMessage());
     $sales = [];
@@ -93,6 +89,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <title>Sales - DryMe</title>
@@ -107,7 +104,7 @@ try {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -163,34 +160,8 @@ try {
                 </a>
                 <div class="navbar-nav align-items-center ms-auto">
                     <div class="nav-item dropdown">
-                        <a href="#" class="nav-link" data-bs-toggle="dropdown">
-                            <i class="fa fa-envelope me-lg-2"></i>
-                            <span class="d-none d-lg-inline-flex">Message</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">
-                                <div class="d-flex align-items-center">
-                                    <div class="ms-2">
-                                        <span class="fw-normal mb-0">No messages yet</span>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="nav-item dropdown">
-                        <a href="#" class="nav-link" data-bs-toggle="dropdown">
-                            <i class="fa fa-bell me-lg-2"></i>
-                            <span class="d-none d-lg-inline-flex">Notifications</span>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">
-                                <span class="fw-normal mb-0">No notifications yet</span>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img class="rounded-circle me-lg-2" src="<?php echo isset($admin['profile_picture']) && $admin['profile_picture'] ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 40px; height: 40px;">
+                            <img class="rounded-circle me-lg-2" src="<?php echo isset($admin['profile_picture']) && $admin['profile_picture'] ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                             <span class="d-none d-lg-inline-flex"><?php echo htmlspecialchars($admin['full_name']); ?></span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
@@ -227,7 +198,7 @@ try {
                         <h5 class="text-primary mb-0">Total Sales: ₱<?php echo number_format($total_sales, 2); ?></h5>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-hover">
+                        <table class="table">
                             <thead>
                                 <tr>
                                     <th scope="col">Sale ID</th>
@@ -240,21 +211,31 @@ try {
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($sales as $sale): ?>
-                                <tr>
-                                    <td><?php echo $sale['sale_id']; ?></td>
-                                    <td><?php echo htmlspecialchars($sale['admin_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($sale['customer_name']); ?></td>
-                                    <td>₱<?php echo number_format($sale['amount_paid'], 2); ?></td>
-                                    <td><?php echo date('M d, Y H:i', strtotime($sale['payment_date'])); ?></td>
-                                    <td><span class="badge bg-<?php echo $sale['order_status'] === 'completed' ? 'success' : 'primary'; ?>"><?php echo ucfirst($sale['order_status']); ?></span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-primary view-details" data-order-id="<?php echo $sale['order_id']; ?>">
-                                            <i class="fa fa-eye me-1"></i>View
-                                        </button>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
+                                <?php if (empty($sales)): ?>
+                                    <tr>
+                                        <td colspan="7" class="text-center">No completed orders found</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($sales as $sale): ?>
+                                        <tr>
+                                            <td><?php echo $sale['sale_id']; ?></td>
+                                            <td><?php echo htmlspecialchars($sale['admin_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($sale['customer_name']); ?></td>
+                                            <td>₱<?php echo number_format($sale['amount_paid'], 2); ?></td>
+                                            <td><?php echo date('M d, Y', strtotime($sale['payment_date'])); ?></td>
+                                            <td>
+                                                <span class="badge bg-success">
+                                                    <?php echo ucfirst($sale['order_status']); ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-info view-details" data-order-id="<?php echo $sale['order_id']; ?>">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -271,7 +252,41 @@ try {
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <!-- Order details will be loaded here -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Customer Information</h6>
+                                    <p><strong>Name:</strong> <span id="customerName"></span></p>
+                                    <p><strong>Phone:</strong> <span id="customerPhone"></span></p>
+                                    <p><strong>Email:</strong> <span id="customerEmail"></span></p>
+                                    <p><strong>Address:</strong> <span id="customerAddress"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Order Information</h6>
+                                    <div id="orderDetails"></div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <h6>Services</h6>
+                                    <table class="table table-bordered" id="servicesTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Service</th>
+                                                <th>Qty</th>
+                                                <th>Price</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Services will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12 text-end">
+                                    <button class="btn btn-primary" id="printReceipt">Print Receipt</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -282,7 +297,7 @@ try {
                 <div class="bg-light rounded-top p-4">
                     <div class="row">
                         <div class="col-12 col-sm-6 text-center text-sm-start">
-                            &copy; <a href="#">DryMe Laundry</a>, All Rights Reserved. 
+                            &copy; <a href="#">DryMe</a>, All Rights Reserved.
                         </div>
                     </div>
                 </div>
@@ -329,28 +344,136 @@ try {
             $('#applyFilter').click(function() {
                 let period = $('#period').val();
                 let url = 'sales.php?period=' + period;
-                
+
                 if (period === 'custom') {
                     url += '&start_date=' + $('#start_date').val() + '&end_date=' + $('#end_date').val();
                 }
-                
+
                 window.location.href = url;
             });
 
             // View order details
             $('.view-details').click(function() {
                 let orderId = $(this).data('order-id');
-                
-                // Load order details via AJAX
-                $.get('helpers/get_order_details.php', { order_id: orderId }, function(data) {
-                    $('#orderDetailsModal .modal-body').html(data);
-                    $('#orderDetailsModal').modal('show');
-                });
+                showOrderDetails(orderId);
+            });
+
+            // Print receipt
+            $('#printReceipt').click(function() {
+                const orderId = $('#currentOrderId').val();
+                printReceipt(orderId);
             });
 
             // Initialize tooltips
             $('[data-bs-toggle="tooltip"]').tooltip();
         });
+
+        function showOrderDetails(orderId) {
+            $.ajax({
+                url: 'helpers/get_order_details.php',
+                type: 'GET',
+                data: {
+                    order_id: orderId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.error) {
+                        alert(response.error);
+                        return;
+                    }
+
+                    // Store the order ID for printing
+                    if (!$('#currentOrderId').length) {
+                        $('body').append('<input type="hidden" id="currentOrderId" value="' + orderId + '">');
+                    } else {
+                        $('#currentOrderId').val(orderId);
+                    }
+
+                    // Fill customer information
+                    $('#customerName').text(response.customer.full_name);
+                    $('#customerPhone').text(response.customer.phone);
+                    $('#customerEmail').text(response.customer.email || 'N/A');
+                    $('#customerAddress').text(response.customer.address);
+
+                    // Fill order details
+                    var orderDetailsHtml = '';
+                    orderDetailsHtml += '<p><strong>Order ID:</strong> #' + response.order.order_id + '</p>';
+                    orderDetailsHtml += '<p><strong>Date:</strong> ' + formatDate(response.order.created_at) + '</p>';
+                    orderDetailsHtml += '<p><strong>Status:</strong> ' + capitalizeFirstLetter(response.order.status) + '</p>';
+                    orderDetailsHtml += '<p><strong>Priority:</strong> ' + capitalizeFirstLetter(response.order.priority) + '</p>';
+                    orderDetailsHtml += '<p><strong>Weight:</strong> ' + response.order.weight_formatted + ' kg</p>';
+
+                    // Use the calculated total for consistency
+                    orderDetailsHtml += '<p><strong>Total Amount:</strong> ₱' + response.order.calculated_total_formatted + '</p>';
+
+                    // Add pickup and delivery dates
+                    var pickupDate = response.order.pickup_date;
+                    var deliveryDate = response.order.delivery_date;
+
+                    orderDetailsHtml += '<p><strong>Pickup Date:</strong> ' + (pickupDate && pickupDate !== '0000-00-00' ? formatDate(pickupDate) : 'N/A') + '</p>';
+                    orderDetailsHtml += '<p><strong>Delivery Date:</strong> ' + (deliveryDate && deliveryDate !== '0000-00-00' ? formatDate(deliveryDate) : 'N/A') + '</p>';
+
+                    // Add special instructions
+                    var specialInstructions = response.order.special_instructions;
+                    orderDetailsHtml += '<p><strong>Special Instructions:</strong> ' + (specialInstructions ? specialInstructions : 'None') + '</p>';
+
+                    $('#orderDetails').html(orderDetailsHtml);
+
+                    // Fill services table
+                    var servicesHtml = '';
+
+                    // Regular services
+                    response.services.forEach(function(service) {
+                        servicesHtml += '<tr>';
+                        servicesHtml += '<td>' + service.service_name + '</td>';
+                        servicesHtml += '<td>N/A</td>';
+                        servicesHtml += '<td>N/A</td>';
+                        servicesHtml += '</tr>';
+                    });
+
+                    // Additional services
+                    if (response.additional_services && response.additional_services.length > 0) {
+                        response.additional_services.forEach(function(service) {
+                            servicesHtml += '<tr>';
+                            servicesHtml += '<td>' + service.name + '</td>';
+                            servicesHtml += '<td>' + service.quantity_formatted + '</td>';
+                            servicesHtml += '<td>₱' + service.price_formatted + '</td>';
+                            servicesHtml += '</tr>';
+                        });
+                    }
+
+                    $('#servicesTable tbody').html(servicesHtml);
+
+                    // Show the modal
+                    $('#orderDetailsModal').modal('show');
+                },
+                error: function() {
+                    alert('Error fetching order details. Please try again.');
+                }
+            });
+        }
+
+        function printReceipt(orderId) {
+            var receiptWindow = window.open('helpers/print_receipt.php?order_id=' + orderId, '_blank', 'width=400,height=600');
+            receiptWindow.focus();
+        }
+
+        // Helper function to format date
+        function formatDate(dateString) {
+            var date = new Date(dateString);
+            var options = {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        // Helper function to capitalize first letter
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
     </script>
 </body>
+
 </html>

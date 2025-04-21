@@ -30,20 +30,20 @@ try {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $total_transactions = $result['total'] ?? 0;
 
-    // Monthly sales - sum of completed and processing orders for current month
+    // Monthly sales - sum of completed orders for current month
     $stmt = $pdo->prepare("SELECT COALESCE(SUM(total_amount), 0) as total 
                           FROM orders 
                           WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) 
                           AND YEAR(created_at) = YEAR(CURRENT_DATE())
-                          AND status IN ('completed', 'processing')");
+                          AND status = 'completed'");
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $monthly_sales = $result['total'] ?? 0;
 
-    // Total revenue - sum of all orders
+    // Total revenue - sum of all completed orders
     $stmt = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) as total 
                         FROM orders 
-                        WHERE status IN ('completed', 'processing')");
+                        WHERE status = 'completed'");
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $total_revenue = $result['total'] ?? 0;
 
@@ -165,15 +165,16 @@ $admin_fullname = isset($_SESSION['admin_fullname']) ? $_SESSION['admin_fullname
                         </div>
                     </div>
                     <div class="nav-item dropdown">
-                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                    <img class="rounded-circle me-lg-2" src="<?php echo isset($admin['profile_picture']) && $admin['profile_picture'] ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 40px; height: 40px;">
-                    <span class="d-none d-lg-inline-flex"><?php echo htmlspecialchars($admin['full_name']); ?></span>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
-                    <a href="profile.php" class="dropdown-item">My Profile</a>
-                    <a href="helpers/logout.php" class="dropdown-item">Log Out</a>
+                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                            <img class="rounded-circle me-lg-2" src="<?php echo isset($admin['profile_picture']) && $admin['profile_picture'] ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 40px; height: 40px; object-fit: cover;">
+                            <span class="d-none d-lg-inline-flex"><?php echo htmlspecialchars($admin['full_name']); ?></span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
+                            <a href="profile.php" class="dropdown-item">My Profile</a>
+                            <a href="helpers/logout.php" class="dropdown-item">Log Out</a>
+                        </div>
                     </div>
-                    </div>
+
                 </div>
             </nav>
             <!-- Navbar End -->
@@ -375,7 +376,7 @@ $admin_fullname = isset($_SESSION['admin_fullname']) ? $_SESSION['admin_fullname
                 <div class="bg-light rounded-top p-4">
                     <div class="row">
                         <div class="col-12 col-sm-6 text-center text-sm-start">
-                            &copy; <a href="#">DryMe Laundry</a>, All Rights Reserved. 
+                            &copy; <a href="#">DryMe</a>, All Rights Reserved. 
                         </div>
 
                     </div>

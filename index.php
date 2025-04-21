@@ -4,6 +4,7 @@ session_start();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="utf-8">
     <title>DRYME</title>
@@ -14,7 +15,7 @@ session_start();
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap" rel="stylesheet"> 
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/all.min.css" rel="stylesheet">
@@ -89,10 +90,10 @@ session_start();
                         <a href="service.php" class="nav-item nav-link">Services</a>
                         <a href="pricing.php" class="nav-item nav-link">Pricing</a>
                         <a href="contact.php" class="nav-item nav-link">Contact</a>
-                        
+
                         <!-- Add User Profile Dropdown -->
                         <?php
-                        if(isset($_SESSION['user_id'])) { ?>
+                        if (isset($_SESSION['user_id'])) { ?>
                             <div class="nav-item dropdown">
                                 <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
                                     <i class="fa fa-user"></i> <?php echo $_SESSION['username']; ?>
@@ -101,18 +102,18 @@ session_start();
                                     <div class="px-3 py-2">
                                         <p class="mb-1"><strong>Username:</strong> <?php echo $_SESSION['username']; ?></p>
                                         <p class="mb-1"><strong>Email:</strong> <?php echo $_SESSION['email']; ?></p>
-                                        <?php if(isset($_SESSION['full_name'])): ?>
+                                        <?php if (isset($_SESSION['full_name'])): ?>
                                             <p class="mb-1"><strong>Full Name:</strong> <?php echo $_SESSION['full_name']; ?></p>
                                         <?php endif; ?>
-                                        <?php if(isset($_SESSION['phone'])): ?>
+                                        <?php if (isset($_SESSION['phone'])): ?>
                                             <p class="mb-1"><strong>Phone:</strong> <?php echo $_SESSION['phone']; ?></p>
                                         <?php endif; ?>
-                                        <?php if(isset($_SESSION['address'])): ?>
+                                        <?php if (isset($_SESSION['address'])): ?>
                                             <p class="mb-1"><strong>Address:</strong> <?php echo $_SESSION['address']; ?></p>
                                         <?php endif; ?>
                                     </div>
                                     <div class="dropdown-divider"></div>
-                                    <a href="profile.php" class="dropdown-item">Edit Profile</a>
+                                    <a href="edit_profile.php" class="dropdown-item">My Profile</a>
                                     <a href="helpers/logout.php" class="dropdown-item">Logout</a>
                                 </div>
                             </div>
@@ -267,7 +268,7 @@ session_start();
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Wash & Laundry -->
                 <div class="col-lg-3 col-md-6 pb-1">
                     <div class="service-card d-flex flex-column align-items-center justify-content-center text-center bg-light mb-4 px-4 position-relative" style="height: 300px;">
@@ -280,7 +281,7 @@ session_start();
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Curtain Laundry -->
                 <div class="col-lg-3 col-md-6 pb-1">
                     <div class="service-card d-flex flex-column align-items-center justify-content-center text-center bg-light mb-4 px-4 position-relative" style="height: 300px;">
@@ -293,7 +294,7 @@ session_start();
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Suits Cleaning -->
                 <div class="col-lg-3 col-md-6 pb-1">
                     <div class="service-card d-flex flex-column align-items-center justify-content-center text-center bg-light mb-4 px-4 position-relative" style="height: 300px;">
@@ -405,9 +406,9 @@ session_start();
                 <div class="col-lg-4 mb-4 d-flex">
                     <div class="bg-white text-center mb-2 pt-4 w-100 d-flex flex-column shadow-lg" style="border-radius: 15px;">
                         <div class="d-inline-flex flex-column align-items-center justify-content-center bg-secondary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
-                            <h3 class="text-white">Basic</h3>
+                            <h3 class="text-white">Normal</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>120<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>210<small class="align-bottom" style="font-size: 16px; line-height: 40px;">.00</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
@@ -426,9 +427,9 @@ session_start();
                 <div class="col-lg-4 mb-4 d-flex">
                     <div class="bg-white text-center mb-2 pt-4 w-100 d-flex flex-column shadow-lg" style="border-radius: 15px;">
                         <div class="d-inline-flex flex-column align-items-center justify-content-center bg-primary rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff;">
-                            <h3 class="text-white">Standard</h3>
+                            <h3 class="text-white">Express</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>150<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>210<small class="align-top" style="font-size: 16px; line-height: 40px;">+25%</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
@@ -449,9 +450,9 @@ session_start();
                 <div class="col-lg-4 mb-4 d-flex">
                     <div class="bg-white text-center mb-2 pt-4 w-100 d-flex flex-column shadow-lg" style="border-radius: 15px;">
                         <div class="d-inline-flex flex-column align-items-center justify-content-center rounded-circle shadow mt-2 mb-4 mx-auto" style="width: 200px; height: 200px; border: 15px solid #ffffff; background-color: #DAA520;">
-                            <h3 class="text-white">Premium</h3>
+                            <h3 class="text-white">Rush</h3>
                             <h1 class="display-4 text-white mb-0 text-center">
-                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>180<small class="align-bottom" style="font-size: 16px; line-height: 40px;">/ Kg</small>
+                                <small class="align-top" style="font-size: 22px; line-height: 45px;">₱</small>210<small class="align-top" style="font-size: 16px; line-height: 40px;">+50%</small>
                             </h1>
                         </div>
                         <div class="d-flex flex-column align-items-center py-3 flex-grow-1">
@@ -479,7 +480,9 @@ session_start();
     <div class="container-fluid bg-primary text-white mt-5 pt-5 px-sm-3 px-md-5">
         <div class="row pt-5">
             <div class="col-lg-3 col-md-6 mb-5">
-                <a href=""><h1 class="text-secondary mb-3"><span class="text-white">DRY</span>ME</h1></a>
+                <a href="">
+                    <h1 class="text-secondary mb-3"><span class="text-white">DRY</span>ME</h1>
+                </a>
                 <p>"We don’t just clean clothes—we care for them."</p>
                 <div class="d-flex justify-content-start mt-4">
                     <a class="btn btn-outline-light rounded-circle text-center mr-2 px-0" style="width: 38px; height: 38px;" href="#"><i class="fab fa-twitter"></i></a>
@@ -497,11 +500,11 @@ session_start();
             <div class="col-lg-3 col-md-6 mb-5">
                 <h4 class="text-white mb-4">Quick Links</h4>
                 <div class="d-flex flex-column justify-content-start">
-                    <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Home</a>
-                    <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>About Us</a>
-                    <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Services</a>
-                    <a class="text-white mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Pricing</a>
-                    <a class="text-white" href="#"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                    <a class="text-white mb-2" href="index.php"><i class="fa fa-angle-right mr-2"></i>Home</a>
+                    <a class="text-white mb-2" href="about.php"><i class="fa fa-angle-right mr-2"></i>About Us</a>
+                    <a class="text-white mb-2" href="service.php"><i class="fa fa-angle-right mr-2"></i>Services</a>
+                    <a class="text-white mb-2" href="pricing.php"><i class="fa fa-angle-right mr-2"></i>Pricing</a>
+                    <a class="text-white" href="contact.php"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 mb-5">
@@ -522,29 +525,29 @@ session_start();
     </div>
     <div class="container-fluid bg-dark text-white py-4 px-sm-3 px-md-5">
         <p class="m-0 text-center text-white">
-            &copy; <a class="text-white font-weight-medium" href="#">dryme.com</a>. All Rights Reserved. 
-			
-    <!-- Footer End -->
+            &copy; <a class="text-white font-weight-medium" href="#">dryme.com</a>. All Rights Reserved.
+
+            <!-- Footer End -->
 
 
-    <!-- Back to Top -->
-    <a href="#" class="btn btn-lg btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+            <!-- Back to Top -->
+            <a href="#" class="btn btn-lg btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
 
 
-    <!-- JavaScript Libraries -->
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-    <script src="lib/easing/easing.min.js"></script>
-    <script src="lib/waypoints/waypoints.min.js"></script>
-    <script src="lib/counterup/counterup.min.js"></script>
-    <script src="lib/owlcarousel/owl.carousel.min.js"></script>
+            <!-- JavaScript Libraries -->
+            <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+            <script src="lib/easing/easing.min.js"></script>
+            <script src="lib/waypoints/waypoints.min.js"></script>
+            <script src="lib/counterup/counterup.min.js"></script>
+            <script src="lib/owlcarousel/owl.carousel.min.js"></script>
 
-    <!-- Contact Javascript File -->
-    <script src="mail/jqBootstrapValidation.min.js"></script>
-    <script src="mail/contact.js"></script>
+            <!-- Contact Javascript File -->
+            <script src="mail/jqBootstrapValidation.min.js"></script>
+            <script src="mail/contact.js"></script>
 
-    <!-- Template Javascript -->
-    <script src="js/main.js"></script>
+            <!-- Main Javascript -->
+            <script src="js/main.js"></script>
 </body>
 
 </html>
