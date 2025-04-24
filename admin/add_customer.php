@@ -159,65 +159,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Add Customer Form Start -->
             <div class="container-fluid pt-4 px-4">
-                <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <?php echo $_SESSION['error']; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                <?php unset($_SESSION['error']); ?>
-                <?php endif; ?>
-                
                 <div class="row g-4">
                     <div class="col-12">
-                        <div class="bg-light rounded h-100 p-4">
+                        <div class="bg-light rounded h-100 p-4 shadow-sm">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h6 class="mb-0">Add New Customer</h6>
+                                <h6 class="mb-0"><i class="fa fa-user-plus me-2"></i>Add New Customer</h6>
                                 <a href="customers.php" class="btn btn-secondary"><i class="fa fa-arrow-left me-2"></i>Back to Customers</a>
                             </div>
                             
-                            <form method="POST" action="">
+                            <form method="POST" action="" id="add-customer-form">
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Username</label>
-                                        <input type="text" class="form-control" name="username" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-user"></i></span>
+                                            <input type="text" class="form-control" name="username" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Full Name</label>
-                                        <input type="text" class="form-control" name="full_name" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-user-tag"></i></span>
+                                            <input type="text" class="form-control" name="full_name" required>
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Email</label>
-                                        <input type="email" class="form-control" name="email" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                                            <input type="email" class="form-control" name="email" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Phone</label>
-                                        <input type="text" class="form-control" name="phone" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-phone"></i></span>
+                                            <input type="text" class="form-control" name="phone" required>
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Address</label>
-                                    <textarea class="form-control" name="address" rows="3" required></textarea>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa fa-map-marker-alt"></i></span>
+                                        <textarea class="form-control" name="address" rows="3" required></textarea>
+                                    </div>
                                 </div>
                                 
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Password</label>
-                                        <input type="password" class="form-control" name="password" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                                            <input type="password" class="form-control" name="password" id="password" required>
+                                        </div>
                                         <small class="text-muted">Password must be at least 6 characters long</small>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Confirm Password</label>
-                                        <input type="password" class="form-control" name="confirm_password" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                                            <input type="password" class="form-control" name="confirm_password" id="confirm_password" required>
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 <div class="mt-4">
                                     <button type="submit" class="btn btn-primary"><i class="fa fa-save me-2"></i>Save Customer</button>
-                                    <button type="reset" class="btn btn-light">Reset</button>
+                                    <button type="reset" class="btn btn-light" id="reset-form">Reset</button>
                                 </div>
                             </form>
                         </div>
@@ -260,32 +273,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="js/main.js"></script>
     
     <script>
-        // Form validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const password = document.querySelector('input[name="password"]').value;
-            const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+        // Display SweetAlert notifications for session messages
+        <?php if (isset($_SESSION['success'])): ?>
+        Swal.fire({
+            title: 'Success!',
+            text: '<?php echo addslashes($_SESSION["success"]); ?>',
+            icon: 'success',
+            confirmButtonColor: '#4e73df',
+            confirmButtonText: 'OK'
+        });
+        <?php unset($_SESSION['success']); ?>
+        <?php endif; ?>
+        
+        <?php if (isset($_SESSION['error'])): ?>
+        Swal.fire({
+            title: 'Error!',
+            text: '<?php echo addslashes($_SESSION["error"]); ?>',
+            icon: 'error',
+            confirmButtonColor: '#e74a3b',
+            confirmButtonText: 'OK'
+        });
+        <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
+        
+        // Form validation and submission
+        document.getElementById('add-customer-form').addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            if (password !== confirmPassword) {
-                e.preventDefault();
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Passwords do not match',
-                    icon: 'error',
-                    confirmButtonColor: '#d33',
-                    confirmButtonText: 'OK'
-                });
-            }
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
             
+            // Validate password length
             if (password.length < 6) {
-                e.preventDefault();
                 Swal.fire({
                     title: 'Error!',
                     text: 'Password must be at least 6 characters long',
                     icon: 'error',
-                    confirmButtonColor: '#d33',
+                    confirmButtonColor: '#e74a3b',
                     confirmButtonText: 'OK'
                 });
+                return;
             }
+            
+            // Validate password match
+            if (password !== confirmPassword) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Passwords do not match',
+                    icon: 'error',
+                    confirmButtonColor: '#e74a3b',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            
+            // Show loading state and submit form
+            Swal.fire({
+                title: 'Adding Customer',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    this.submit();
+                }
+            });
+        });
+        
+        // Reset form with confirmation
+        document.getElementById('reset-form').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: 'Reset Form?',
+                text: 'Are you sure you want to clear all fields?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4e73df',
+                cancelButtonColor: '#e74a3b',
+                confirmButtonText: 'Yes, reset it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('add-customer-form').reset();
+                    Swal.fire(
+                        'Reset!',
+                        'The form has been reset.',
+                        'success'
+                    );
+                }
+            });
         });
     </script>
 </body>

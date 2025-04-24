@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>DASH - DryMe</title>
+    <title>Admin Profile - DryMe</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -21,6 +21,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
     <!-- Libraries Stylesheet -->
     <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
     <link href="lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
@@ -30,6 +33,37 @@
 
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+    
+    <style>
+        .profile-card {
+            transition: all 0.3s ease;
+            border-radius: 15px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+        }
+        .profile-image {
+            border-radius: 50%;
+            border: 5px solid #fff;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: all 0.3s ease;
+        }
+        .profile-image:hover {
+            transform: scale(1.05);
+        }
+        .form-control:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+        }
+        .btn-update {
+            transition: all 0.3s ease;
+        }
+        .btn-update:hover {
+            transform: translateY(-2px);
+        }
+    </style>
 </head>
 
 <body>
@@ -179,62 +213,79 @@
             <div class="container-fluid pt-4 px-4">
                 <div class="row g-4">
                     <div class="col-sm-12 col-xl-4">
-                        <div class="bg-light rounded p-4">
+                        <div class="bg-light rounded p-4 profile-card">
                             <div class="text-center">
-                                <img class="mb-4" src="<?php echo isset($admin['profile_picture']) ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 200px; height: 200px; object-fit: cover;">
+                                <img class="mb-4 profile-image" src="<?php echo isset($admin['profile_picture']) ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 200px; height: 200px; object-fit: cover;">
                                 <h4><?php echo htmlspecialchars($admin['full_name']); ?></h4>
                                 <p class="text-muted mb-4"><?php echo htmlspecialchars($admin['role']); ?></p>
-                                <form action="" method="POST" enctype="multipart/form-data">
+                                <form action="" method="POST" enctype="multipart/form-data" id="profile-picture-form">
                                     <div class="mb-3">
-                                        <input class="form-control" type="file" name="profile_picture" accept="image/*">
+                                        <input class="form-control" type="file" name="profile_picture" accept="image/*" id="profile-picture-input">
                                     </div>
-                                    <button type="submit" class="btn btn-primary">Update Picture</button>
+                                    <button type="submit" class="btn btn-primary btn-update"><i class="fa fa-camera me-2"></i>Update Picture</button>
                                 </form>
                             </div>
                         </div>
                     </div>
                     <div class="col-sm-12 col-xl-8">
-                        <div class="bg-light rounded p-4">
-                            <h5 class="mb-4">Profile Information</h5>
-                            <?php if (isset($_SESSION['success_msg'])): ?>
-                                <div class="alert alert-success"><?php echo $_SESSION['success_msg']; unset($_SESSION['success_msg']); ?></div>
-                            <?php endif; ?>
-                            <?php if (isset($_SESSION['error_msg'])): ?>
-                                <div class="alert alert-danger"><?php echo $_SESSION['error_msg']; unset($_SESSION['error_msg']); ?></div>
-                            <?php endif; ?>
-                            <form action="" method="POST">
-                                <div class="mb-3">
-                                    <label class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" name="fullname" value="<?php echo htmlspecialchars($admin['full_name']); ?>">
+                        <div class="bg-light rounded p-4 profile-card">
+                            <h5 class="mb-4"><i class="fa fa-user-edit me-2"></i>Profile Information</h5>
+                            <form action="" method="POST" id="profile-form">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Full Name</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-user"></i></span>
+                                            <input type="text" class="form-control" name="fullname" value="<?php echo htmlspecialchars($admin['full_name']); ?>" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Username</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-user-tag"></i></span>
+                                            <input type="text" class="form-control" name="username" value="<?php echo htmlspecialchars($admin['username']); ?>" required>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Email</label>
-                                    <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($admin['email']); ?>">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                                        <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($admin['email']); ?>" required>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Username</label>
-                                    <input type="text" class="form-control" name="username" value="<?php echo htmlspecialchars($admin['username']); ?>">
-                                </div>
-                                <button type="submit" name="update_profile" class="btn btn-primary">Update Profile</button>
+                                <button type="submit" name="update_profile" class="btn btn-primary btn-update"><i class="fa fa-save me-2"></i>Update Profile</button>
                             </form>
                             
                             <hr class="my-4">
                             
-                            <h5 class="mb-4">Change Password</h5>
-                            <form action="" method="POST">
+                            <h5 class="mb-4"><i class="fa fa-lock me-2"></i>Change Password</h5>
+                            <form action="" method="POST" id="password-form">
                                 <div class="mb-3">
                                     <label class="form-label">Current Password</label>
-                                    <input type="password" class="form-control" name="current_password" required>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa fa-key"></i></span>
+                                        <input type="password" class="form-control" name="current_password" required>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">New Password</label>
-                                    <input type="password" class="form-control" name="new_password" required>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">New Password</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                                            <input type="password" class="form-control" name="new_password" id="new_password" required>
+                                        </div>
+                                        <small class="text-muted">Password must be at least 6 characters long</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Confirm New Password</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                                            <input type="password" class="form-control" name="confirm_password" id="confirm_password" required>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Confirm New Password</label>
-                                    <input type="password" class="form-control" name="confirm_password" required>
-                                </div>
-                                <button type="submit" name="change_password" class="btn btn-primary">Change Password</button>
+                                <button type="submit" name="change_password" class="btn btn-primary btn-update"><i class="fa fa-key me-2"></i>Change Password</button>
                             </form>
                         </div>
                     </div>
@@ -266,6 +317,7 @@
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="lib/chart/chart.min.js"></script>
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>
@@ -276,6 +328,127 @@
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
+    
+    <script>
+        // Display SweetAlert notifications for session messages
+        <?php if (isset($_SESSION['success_msg'])): ?>
+        Swal.fire({
+            title: 'Success!',
+            text: '<?php echo addslashes($_SESSION['success_msg']); ?>',
+            icon: 'success',
+            confirmButtonColor: '#4e73df',
+            confirmButtonText: 'OK'
+        });
+        <?php unset($_SESSION['success_msg']); ?>
+        <?php endif; ?>
+        
+        <?php if (isset($_SESSION['error_msg'])): ?>
+        Swal.fire({
+            title: 'Error!',
+            text: '<?php echo addslashes($_SESSION['error_msg']); ?>',
+            icon: 'error',
+            confirmButtonColor: '#e74a3b',
+            confirmButtonText: 'OK'
+        });
+        <?php unset($_SESSION['error_msg']); ?>
+        <?php endif; ?>
+        
+        // Profile form validation and submission
+        document.getElementById('profile-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: 'Updating Profile',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    this.submit();
+                }
+            });
+        });
+        
+        // Password form validation and submission
+        document.getElementById('password-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            // Validate password length
+            if (newPassword.length < 6) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Password must be at least 6 characters long',
+                    icon: 'error',
+                    confirmButtonColor: '#e74a3b',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            
+            // Validate password match
+            if (newPassword !== confirmPassword) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Passwords do not match',
+                    icon: 'error',
+                    confirmButtonColor: '#e74a3b',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            
+            Swal.fire({
+                title: 'Changing Password',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    this.submit();
+                }
+            });
+        });
+        
+        // Profile picture form validation and submission
+        document.getElementById('profile-picture-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('profile-picture-input');
+            if (fileInput.files.length === 0) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Please select an image file',
+                    icon: 'error',
+                    confirmButtonColor: '#e74a3b',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(fileInput.files[0].type)) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Invalid file type! Please upload JPG, PNG or GIF',
+                    icon: 'error',
+                    confirmButtonColor: '#e74a3b',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            
+            Swal.fire({
+                title: 'Updating Profile Picture',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    this.submit();
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

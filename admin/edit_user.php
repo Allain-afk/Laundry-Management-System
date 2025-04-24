@@ -143,6 +143,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+    
+    <style>
+        .profile-card {
+            transition: all 0.3s ease;
+            border-radius: 15px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+        }
+        .form-control:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+        }
+        .btn-update {
+            transition: all 0.3s ease;
+        }
+        .btn-update:hover {
+            transform: translateY(-2px);
+        }
+        .input-group-text {
+            background-color: #4e73df;
+            color: white;
+            border: 1px solid #4e73df;
+        }
+    </style>
 </head>
 
 <body>
@@ -197,56 +224,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Edit Customer Form Start -->
             <div class="container-fluid pt-4 px-4">
-                <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <?php echo $_SESSION['error']; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                <?php unset($_SESSION['error']); ?>
-                <?php endif; ?>
-                
                 <div class="row g-4">
                     <div class="col-12">
-                        <div class="bg-light rounded h-100 p-4">
+                        <div class="bg-light rounded h-100 p-4 shadow-sm">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h6 class="mb-0">Edit Customer</h6>
+                                <h6 class="mb-0"><i class="fa fa-user-edit me-2"></i>Edit Customer</h6>
                                 <div>
                                     <a href="view_customer.php?id=<?php echo $customer_id; ?>" class="btn btn-info me-2"><i class="fa fa-eye me-2"></i>View Details</a>
                                     <a href="customers.php" class="btn btn-secondary"><i class="fa fa-arrow-left me-2"></i>Back to Customers</a>
                                 </div>
                             </div>
                             
-                            <form method="POST" action="">
+                            <form method="POST" action="" id="edit-customer-form">
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Username</label>
-                                        <input type="text" class="form-control" name="username" value="<?php echo htmlspecialchars($customer['username']); ?>" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-user"></i></span>
+                                            <input type="text" class="form-control" name="username" value="<?php echo htmlspecialchars($customer['username']); ?>" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Full Name</label>
-                                        <input type="text" class="form-control" name="full_name" value="<?php echo htmlspecialchars($customer['full_name']); ?>" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-user-tag"></i></span>
+                                            <input type="text" class="form-control" name="full_name" value="<?php echo htmlspecialchars($customer['full_name']); ?>" required>
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Email</label>
-                                        <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($customer['email']); ?>" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-envelope"></i></span>
+                                            <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($customer['email']); ?>" required>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Phone</label>
-                                        <input type="text" class="form-control" name="phone" value="<?php echo htmlspecialchars($customer['phone']); ?>" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fa fa-phone"></i></span>
+                                            <input type="text" class="form-control" name="phone" value="<?php echo htmlspecialchars($customer['phone']); ?>" required>
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">Address</label>
-                                    <textarea class="form-control" name="address" rows="3" required><?php echo htmlspecialchars($customer['address']); ?></textarea>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa fa-map-marker-alt"></i></span>
+                                        <textarea class="form-control" name="address" rows="3" required><?php echo htmlspecialchars($customer['address']); ?></textarea>
+                                    </div>
                                 </div>
                                 
                                 <div class="mb-3">
                                     <label class="form-label">New Password</label>
-                                    <input type="password" class="form-control" name="password">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa fa-lock"></i></span>
+                                        <input type="password" class="form-control" name="password" id="password">
+                                    </div>
                                     <small class="text-muted">Leave blank to keep current password. New password must be at least 6 characters long.</small>
                                 </div>
                                 
@@ -295,33 +332,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="js/main.js"></script>
     
     <script>
-        // Form validation
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const password = document.querySelector('input[name="password"]').value;
-            
-            if (password && password.length < 6) {
-                e.preventDefault();
-                Swal.fire({
-                    title: 'Error!',
-                    text: 'Password must be at least 6 characters long',
-                    icon: 'error',
-                    confirmButtonColor: '#d33',
-                    confirmButtonText: 'OK'
-                });
-            }
-        });
-        
-        // Display SweetAlert2 for success/error messages if needed
+        // Display SweetAlert notifications for session messages
         <?php if (isset($_SESSION['success'])): ?>
         Swal.fire({
             title: 'Success!',
             text: '<?php echo addslashes($_SESSION['success']); ?>',
             icon: 'success',
-            confirmButtonColor: '#3085d6',
+            confirmButtonColor: '#4e73df',
             confirmButtonText: 'OK'
         });
         <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
+        
+        <?php if (isset($_SESSION['error'])): ?>
+        Swal.fire({
+            title: 'Error!',
+            text: '<?php echo addslashes($_SESSION['error']); ?>',
+            icon: 'error',
+            confirmButtonColor: '#e74a3b',
+            confirmButtonText: 'OK'
+        });
+        <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
+        
+        // Form validation and submission
+        document.getElementById('edit-customer-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            
+            // Validate password length if provided
+            if (password && password.length < 6) {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Password must be at least 6 characters long',
+                    icon: 'error',
+                    confirmButtonColor: '#e74a3b',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+            
+            // Show loading state and submit form
+            Swal.fire({
+                title: 'Updating Customer',
+                text: 'Please wait...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    this.submit();
+                }
+            });
+        });
     </script>
 </body>
 
