@@ -234,9 +234,8 @@ $admin_fullname = isset($_SESSION['admin_fullname']) ? $_SESSION['admin_fullname
                         <table class="table text-start align-middle table-bordered table-hover mb-0">
                             <thead>
                                 <tr class="text-dark">
-                                    <th scope="col"><input class="form-check-input" type="checkbox"></th>
                                     <th scope="col">Date</th>
-                                    <th scope="col">Invoice</th>
+                                    <th scope="col">Order ID</th>
                                     <th scope="col">Customer</th>
                                     <th scope="col">Amount</th>
                                     <th scope="col">Status</th>
@@ -244,51 +243,37 @@ $admin_fullname = isset($_SESSION['admin_fullname']) ? $_SESSION['admin_fullname
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
-                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
-                                </tr>
-                                <tr>
-                                    <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
-                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
-                                </tr>
-                                <tr>
-                                    <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
-                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
-                                </tr>
-                                <tr>
-                                    <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
-                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
-                                </tr>
-                                <tr>
-                                    <td><input class="form-check-input" type="checkbox"></td>
-                                    <td>01 Jan 2045</td>
-                                    <td>INV-0123</td>
-                                    <td>Jhon Doe</td>
-                                    <td>$123</td>
-                                    <td>Paid</td>
-                                    <td><a class="btn btn-sm btn-primary" href="">Detail</a></td>
-                                </tr>
+                                <?php
+                                // Fetch recent sales (last 5 completed orders)
+                                try {
+                                    $stmt = $pdo->prepare("SELECT o.order_id, o.created_at, o.total_amount, o.status, 
+                                                          c.full_name as customer_name
+                                                          FROM orders o
+                                                          INNER JOIN customers c ON o.customer_id = c.customer_id
+                                                          WHERE o.status = 'completed'
+                                                          ORDER BY o.created_at DESC LIMIT 5");
+                                    $stmt->execute();
+                                    $recent_sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                    
+                                    if (empty($recent_sales)) {
+                                        echo '<tr><td colspan="6" class="text-center">No recent sales found</td></tr>';
+                                    } else {
+                                        foreach ($recent_sales as $sale) {
+                                            echo '<tr>';
+                                            echo '<td>' . date('d M Y', strtotime($sale['created_at'])) . '</td>';
+                                            echo '<td>#' . $sale['order_id'] . '</td>';
+                                            echo '<td>' . htmlspecialchars($sale['customer_name']) . '</td>';
+                                            echo '<td>₱' . number_format($sale['total_amount'], 2) . '</td>';
+                                            echo '<td><span class="badge bg-success">' . ucfirst($sale['status']) . '</span></td>';
+                                            echo '<td><a class="btn btn-sm btn-primary" href="orders.php?view=' . $sale['order_id'] . '">Detail</a></td>';
+                                            echo '</tr>';
+                                        }
+                                    }
+                                } catch (PDOException $e) {
+                                    echo '<tr><td colspan="6" class="text-center">Error loading recent sales</td></tr>';
+                                    error_log("Recent sales query error: " . $e->getMessage());
+                                }
+                                ?>
                             </tbody>
                         </table>
                     </div>
@@ -300,69 +285,138 @@ $admin_fullname = isset($_SESSION['admin_fullname']) ? $_SESSION['admin_fullname
             <div class="container-fluid pt-4 px-4">
                 <div class="row g-4">
                     
-                    <div class="col-sm-12 col-md-6 col-xl-4">
+                    <div class="col-sm-12 col-md-6 col-xl-6">
                         <div class="h-100 bg-light rounded p-4">
                             <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h6 class="mb-0">Calendar</h6>
-                                <a href="">Show All</a>
+                                <h6 class="mb-0">Pending Orders</h6>
+                                <a href="orders.php?status=pending">Show All</a>
                             </div>
-                            <div id="calender"></div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Customer</th>
+                                            <th>Status</th>
+                                            <th>Priority</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        // Fetch pending orders
+                                        try {
+                                            $stmt = $pdo->prepare("SELECT o.order_id, o.status, o.priority, o.created_at, 
+                                                                  c.full_name as customer_name
+                                                                  FROM orders o
+                                                                  INNER JOIN customers c ON o.customer_id = c.customer_id
+                                                                  WHERE o.status IN ('pending', 'processing')
+                                                                  ORDER BY 
+                                                                    CASE 
+                                                                        WHEN o.priority = 'high' THEN 1
+                                                                        WHEN o.priority = 'medium' THEN 2
+                                                                        ELSE 3
+                                                                    END,
+                                                                    o.created_at ASC
+                                                                  LIMIT 5");
+                                            $stmt->execute();
+                                            $pending_orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            
+                                            if (empty($pending_orders)) {
+                                                echo '<tr><td colspan="5" class="text-center">No pending orders</td></tr>';
+                                            } else {
+                                                foreach ($pending_orders as $order) {
+                                                    $priority_badge = 'bg-info';
+                                                    if ($order['priority'] == 'high') {
+                                                        $priority_badge = 'bg-danger';
+                                                    } else if ($order['priority'] == 'medium') {
+                                                        $priority_badge = 'bg-warning';
+                                                    }
+                                                    
+                                                    $status_badge = 'bg-warning';
+                                                    if ($order['status'] == 'processing') {
+                                                        $status_badge = 'bg-primary';
+                                                    }
+                                                    
+                                                    echo '<tr>';
+                                                    echo '<td>#' . $order['order_id'] . '</td>';
+                                                    echo '<td>' . htmlspecialchars($order['customer_name']) . '</td>';
+                                                    echo '<td><span class="badge ' . $status_badge . '">' . ucfirst($order['status']) . '</span></td>';
+                                                    echo '<td><span class="badge ' . $priority_badge . '">' . ucfirst($order['priority']) . '</span></td>';
+                                                    echo '<td><a class="btn btn-sm btn-outline-primary" href="orders.php?view=' . $order['order_id'] . '">View</a></td>';
+                                                    echo '</tr>';
+                                                }
+                                            }
+                                        } catch (PDOException $e) {
+                                            echo '<tr><td colspan="5" class="text-center">Error loading pending orders</td></tr>';
+                                            error_log("Pending orders query error: " . $e->getMessage());
+                                        }
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-sm-12 col-md-6 col-xl-4">
+                    
+                    <div class="col-sm-12 col-md-6 col-xl-6">
                         <div class="h-100 bg-light rounded p-4">
                             <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h6 class="mb-0">To Do List</h6>
-                                <a href="">Show All</a>
+                                <h6 class="mb-0">Low Stock Alerts</h6>
+                                <a href="inventory.php">Manage Inventory</a>
                             </div>
-                            <div class="d-flex mb-2">
-                                <input class="form-control bg-transparent" type="text" placeholder="Enter task">
-                                <button type="button" class="btn btn-primary ms-2">Add</button>
-                            </div>
-                            <div class="d-flex align-items-center border-bottom py-2">
-                                <input class="form-check-input m-0" type="checkbox">
-                                <div class="w-100 ms-3">
-                                    <div class="d-flex w-100 align-items-center justify-content-between">
-                                        <span>Short task goes here...</span>
-                                        <button class="btn btn-sm"><i class="fa fa-times"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center border-bottom py-2">
-                                <input class="form-check-input m-0" type="checkbox">
-                                <div class="w-100 ms-3">
-                                    <div class="d-flex w-100 align-items-center justify-content-between">
-                                        <span>Short task goes here...</span>
-                                        <button class="btn btn-sm"><i class="fa fa-times"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center border-bottom py-2">
-                                <input class="form-check-input m-0" type="checkbox" checked>
-                                <div class="w-100 ms-3">
-                                    <div class="d-flex w-100 align-items-center justify-content-between">
-                                        <span><del>Short task goes here...</del></span>
-                                        <button class="btn btn-sm text-primary"><i class="fa fa-times"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center border-bottom py-2">
-                                <input class="form-check-input m-0" type="checkbox">
-                                <div class="w-100 ms-3">
-                                    <div class="d-flex w-100 align-items-center justify-content-between">
-                                        <span>Short task goes here...</span>
-                                        <button class="btn btn-sm"><i class="fa fa-times"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center pt-2">
-                                <input class="form-check-input m-0" type="checkbox">
-                                <div class="w-100 ms-3">
-                                    <div class="d-flex w-100 align-items-center justify-content-between">
-                                        <span>Short task goes here...</span>
-                                        <button class="btn btn-sm"><i class="fa fa-times"></i></button>
-                                    </div>
-                                </div>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Category</th>
+                                            <th>Current Stock</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        // Fetch low stock items
+                                        try {
+                                            $stmt = $pdo->prepare("SELECT item_id, name, category, quantity, minimum_stock 
+                                                                  FROM inventory 
+                                                                  WHERE quantity <= minimum_stock 
+                                                                  ORDER BY (quantity/minimum_stock) ASC 
+                                                                  LIMIT 5");
+                                            $stmt->execute();
+                                            $low_stock = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            
+                                            if (empty($low_stock)) {
+                                                echo '<tr><td colspan="4" class="text-center">No low stock items</td></tr>';
+                                            } else {
+                                                foreach ($low_stock as $item) {
+                                                    $stock_ratio = $item['quantity'] / max(1, $item['minimum_stock']);
+                                                    $status_badge = 'bg-warning';
+                                                    $status_text = 'Low Stock';
+                                                    
+                                                    if ($stock_ratio <= 0.25) {
+                                                        $status_badge = 'bg-danger';
+                                                        $status_text = 'Critical';
+                                                    } else if ($stock_ratio > 0.75) {
+                                                        $status_badge = 'bg-info';
+                                                        $status_text = 'Reorder Soon';
+                                                    }
+                                                    
+                                                    echo '<tr>';
+                                                    echo '<td>' . htmlspecialchars($item['name']) . '</td>';
+                                                    echo '<td>' . ucfirst($item['category']) . '</td>';
+                                                    echo '<td>' . $item['quantity'] . '</td>';
+                                                    echo '<td><span class="badge ' . $status_badge . '">' . $status_text . '</span></td>';
+                                                    echo '</tr>';
+                                                }
+                                            }
+                                        } catch (PDOException $e) {
+                                            echo '<tr><td colspan="4" class="text-center">Error loading inventory data</td></tr>';
+                                            error_log("Low stock query error: " . $e->getMessage());
+                                        }
+                                        ?>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>

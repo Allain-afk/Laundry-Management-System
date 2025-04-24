@@ -66,6 +66,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             break;
 
+        case 'delete_item':
+            try {
+                // Get item details before deletion for logging
+                $stmt = $pdo->prepare("SELECT * FROM inventory WHERE item_id = ?");
+                $stmt->execute([$_POST['item_id']]);
+                $item = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$item) {
+                    $response = ['success' => false, 'message' => 'Item not found'];
+                    break;
+                }
+                
+                // Delete the item
+                $stmt = $pdo->prepare("DELETE FROM inventory WHERE item_id = ?");
+                $stmt->execute([$_POST['item_id']]);
+                
+                // Log the transaction
+                $stmt = $pdo->prepare("INSERT INTO inventory_transactions (item_id, transaction_type, quantity, notes, created_by) VALUES (?, 'deletion', ?, 'Item deleted', ?)");
+                $stmt->execute([$_POST['item_id'], $item['quantity'], $_SESSION['admin_id']]);
+                
+                $response = ['success' => true, 'message' => 'Item deleted successfully'];
+            } catch (PDOException $e) {
+                $response = ['success' => false, 'message' => 'Error deleting item: ' . $e->getMessage()];
+            }
+            break;
+
+        case 'get_item':
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM inventory WHERE item_id = ?");
+                $stmt->execute([$_POST['item_id']]);
+                $item = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$item) {
+                    $response = ['success' => false, 'message' => 'Item not found'];
+                } else {
+                    $response = ['success' => true, 'item' => $item];
+                }
+            } catch (PDOException $e) {
+                $response = ['success' => false, 'message' => 'Error fetching item: ' . $e->getMessage()];
+            }
+            break;
+
+        case 'restock_item':
+            try {
+                // Get current item details
+                $stmt = $pdo->prepare("SELECT * FROM inventory WHERE item_id = ?");
+                $stmt->execute([$_POST['item_id']]);
+                $item = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$item) {
+                    $response = ['success' => false, 'message' => 'Item not found'];
+                    break;
+                }
+                
+                // Update quantity
+                $new_quantity = $item['quantity'] + $_POST['add_quantity'];
+                $stmt = $pdo->prepare("UPDATE inventory SET quantity = ? WHERE item_id = ?");
+                $stmt->execute([$new_quantity, $_POST['item_id']]);
+                
+                // Log the transaction
+                $stmt = $pdo->prepare("INSERT INTO inventory_transactions (item_id, transaction_type, quantity, notes, created_by) VALUES (?, 'restock', ?, 'Item restocked', ?)");
+                $stmt->execute([$_POST['item_id'], $_POST['add_quantity'], $_SESSION['admin_id']]);
+                
+                $response = ['success' => true, 'message' => 'Item restocked successfully'];
+            } catch (PDOException $e) {
+                $response = ['success' => false, 'message' => 'Error restocking item: ' . $e->getMessage()];
+            }
+            break;
+
         case 'schedule_maintenance':
             try {
                 $stmt = $pdo->prepare("UPDATE inventory SET next_maintenance_date = ?, last_maintenance_date = CURRENT_DATE, status = 'maintenance' WHERE item_id = ?");

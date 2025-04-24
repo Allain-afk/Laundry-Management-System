@@ -54,57 +54,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
     
-    <!-- Success Animation Styles -->
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
     <style>
-        .success-animation {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+        /* Custom SweetAlert styles to match your color scheme */
+        .swal2-icon.swal2-success {
+            color: rgb(0, 56, 161) !important;
+            border-color: rgb(0, 56, 161) !important;
         }
         
-        .success-icon {
-            font-size: 80px;
-            color:rgb(0, 56, 161);
-            margin-bottom: 20px;
+        .swal2-icon.swal2-success .swal2-success-ring {
+            border-color: rgb(0, 56, 161) !important;
         }
         
-        .success-message {
-            font-size: 24px;
-            font-weight: bold;
-            color:rgb(0, 14, 204);
-            margin-bottom: 10px;
+        .swal2-icon.swal2-success [class^=swal2-success-line] {
+            background-color: rgb(0, 56, 161) !important;
         }
         
-        .redirect-message {
-            font-size: 16px;
-            color: #6c757d;
+        .swal2-title {
+            color: rgb(0, 14, 204) !important;
+        }
+        
+        .swal2-html-container {
+            color: #6c757d !important;
         }
     </style>
 </head>
 
 <body>
-    <!-- Success Animation Container -->
-    <?php if (isset($login_success) && $login_success): ?>
-    <div id="successAnimation" class="success-animation">
-        <div class="success-icon">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="success-message">Signed In!</div>
-        <div class="redirect-message">Redirecting you to our home page...</div>
-    </div>
-    <?php endif; ?>
-
+    <!-- Success Animation Container is removed since we're using SweetAlert -->
+    
     <div class="container-fluid position-relative bg-white d-flex p-0">
         <!-- Spinner Start -->
         <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
@@ -169,6 +149,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="lib/tempusdominus/js/moment.min.js"></script>
     <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Main Javascript -->
     <script src="js/main.js"></script>
@@ -188,22 +171,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
         
-        // Handle success animation and redirect
+        // Handle success animation and redirect with SweetAlert
         <?php if (isset($login_success) && $login_success): ?>
         document.addEventListener('DOMContentLoaded', function() {
-            // Show success animation
-            const successAnimation = document.getElementById('successAnimation');
-            successAnimation.style.display = 'flex';
+            // Hide spinner if it exists
+            const spinner = document.getElementById('spinner');
+            if (spinner) {
+                spinner.classList.remove('show');
+            }
             
-            // Fade in animation
-            setTimeout(function() {
-                successAnimation.style.opacity = '1';
-            }, 100);
-            
-            // Redirect after delay
-            setTimeout(function() {
+            // Show SweetAlert success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Signed In!',
+                text: 'Redirecting you to our home page...',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            }).then(() => {
                 window.location.href = 'index.php';
-            }, 2000); // 2 seconds delay before redirect
+            });
         });
         <?php endif; ?>
     </script>

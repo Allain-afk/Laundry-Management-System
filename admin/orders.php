@@ -133,6 +133,9 @@ $orders = $stmt->fetchAll();
     <!-- Icon Font Stylesheet -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 
     <!-- Libraries Stylesheet -->
     <link href="lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
@@ -177,16 +180,13 @@ $orders = $stmt->fetchAll();
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-light navbar-light sticky-top px-4 py-0">
-                <a href="index.php" class="navbar-brand d-flex d-lg-none me-4">
-                    <h2 class="text-primary mb-0"><i class="fa fa-hashtag"></i></h2>
-                </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0">
                     <i class="fa fa-bars"></i>
                 </a>
                 <div class="navbar-nav align-items-center ms-auto">
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img class="rounded-circle me-lg-2" src="<?php echo isset($admin['profile_picture']) ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 40px; height: 40px;">
+                            <img class="rounded-circle me-lg-2" src="<?php echo isset($admin['profile_picture']) && $admin['profile_picture'] ? 'img/profile/' . $admin['profile_picture'] : 'img/user.jpg'; ?>" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                             <span class="d-none d-lg-inline-flex"><?php echo htmlspecialchars($admin['full_name']); ?></span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-light border-0 rounded-0 rounded-bottom m-0">
@@ -200,25 +200,37 @@ $orders = $stmt->fetchAll();
 
             <!-- Orders Form Start -->
             <div class="container-fluid pt-4 px-4">
-                <!-- Display success/error messages -->
+                <!-- Success/Error messages will be handled by SweetAlert2 -->
+                <div id="alert-container"></div>
+                
                 <?php if (isset($_SESSION['success'])): ?>
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <?php 
-                        echo $_SESSION['success'];
-                        unset($_SESSION['success']);
-                        ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: '<?php echo addslashes($_SESSION['success']); ?>',
+                                icon: 'success',
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                    </script>
+                    <?php unset($_SESSION['success']); ?>
                 <?php endif; ?>
 
                 <?php if (isset($_SESSION['error'])): ?>
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <?php 
-                        echo $_SESSION['error'];
-                        unset($_SESSION['error']);
-                        ?>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: '<?php echo addslashes($_SESSION['error']); ?>',
+                                icon: 'error',
+                                confirmButtonColor: '#d33',
+                                confirmButtonText: 'OK'
+                            });
+                        });
+                    </script>
+                    <?php unset($_SESSION['error']); ?>
                 <?php endif; ?>
 
                 <div class="row g-4">
@@ -424,14 +436,17 @@ $orders = $stmt->fetchAll();
                                             </td>
                                             <td>
                                                 <div class="btn-group">
-                                                    <button class="btn btn-sm btn-info" onclick="showOrderDetails(<?php echo $order['order_id']; ?>)">
+                                                    <button class="btn btn-sm btn-info" onclick="showOrderDetails(<?php echo $order['order_id']; ?>)" title="View Details">
                                                         <i class="fa fa-eye"></i>
                                                     </button>
-                                                    <button class="btn btn-sm btn-warning" onclick="updateOrderStatus(<?php echo $order['order_id']; ?>, '<?php echo $order['status']; ?>')">
+                                                    <button class="btn btn-sm btn-warning" onclick="updateOrderStatus(<?php echo $order['order_id']; ?>, '<?php echo $order['status']; ?>')" title="Update Status">
                                                         <i class="fa fa-edit"></i>
                                                     </button>
-                                                    <button class="btn btn-sm btn-secondary" onclick="printReceipt(<?php echo $order['order_id']; ?>)">
+                                                    <button class="btn btn-sm btn-secondary" onclick="printReceipt(<?php echo $order['order_id']; ?>)" title="Print Receipt">
                                                         <i class="fa fa-print"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" onclick="confirmDeleteOrder(<?php echo $order['order_id']; ?>)" title="Delete Order">
+                                                        <i class="fa fa-trash"></i>
                                                     </button>
                                                 </div>
                                             </td>
@@ -543,6 +558,7 @@ $orders = $stmt->fetchAll();
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="lib/chart/chart.min.js"></script>
     <script src="lib/easing/easing.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>
@@ -558,14 +574,29 @@ $orders = $stmt->fetchAll();
 </html>
 <script>
 function showOrderDetails(orderId) {
+    // Show loading indicator
+    Swal.fire({
+        title: 'Loading...',
+        text: 'Fetching order details',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
     $.ajax({
         url: 'helpers/get_order_details.php',
         type: 'GET',
         data: { order_id: orderId },
         dataType: 'json',
         success: function(response) {
+            Swal.close();
             if (response.error) {
-                alert(response.error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: response.error,
+                    icon: 'error'
+                });
                 return;
             }
             
@@ -634,9 +665,73 @@ function showOrderDetails(orderId) {
 }
 
 function updateOrderStatus(orderId, currentStatus) {
-    $('#updateOrderId').val(orderId);
-    $('#updateOrderStatus').val(currentStatus);
-    $('#updateStatusModal').modal('show');
+    Swal.fire({
+        title: 'Update Order Status',
+        html: `
+            <select id="swal-status-select" class="form-select mb-3">
+                <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="processing" ${currentStatus === 'processing' ? 'selected' : ''}>Processing</option>
+                <option value="completed" ${currentStatus === 'completed' ? 'selected' : ''}>Completed</option>
+                <option value="cancelled" ${currentStatus === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+            </select>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Update',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        preConfirm: () => {
+            return document.getElementById('swal-status-select').value;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const newStatus = result.value;
+            
+            // Show loading state
+            Swal.fire({
+                title: 'Updating...',
+                text: 'Updating order status',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            $.ajax({
+                url: 'helpers/update_order_status.php',
+                type: 'POST',
+                data: { order_id: orderId, status: newStatus },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'Order status updated successfully',
+                            icon: 'success',
+                            confirmButtonColor: '#3085d6'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: response.error || 'An error occurred',
+                            icon: 'error',
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred while updating the order status.',
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            });
+        }
+    });
 }
 
 function saveOrderStatus() {
@@ -748,8 +843,44 @@ $(document).ready(function() {
 
 <script>
 function printReceipt(orderId) {
-    var receiptWindow = window.open('helpers/print_receipt.php?order_id=' + orderId, '_blank', 'width=400,height=600');
-    receiptWindow.focus();
+    Swal.fire({
+        title: 'Preparing Receipt',
+        text: 'Opening print preview...',
+        icon: 'info',
+        timer: 1500,
+        showConfirmButton: false
+    }).then(() => {
+        var receiptWindow = window.open('helpers/print_receipt.php?order_id=' + orderId, '_blank', 'width=400,height=600');
+        receiptWindow.focus();
+    });
+}
+
+// Function to confirm order deletion
+function confirmDeleteOrder(orderId) {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading state
+            Swal.fire({
+                title: 'Deleting...',
+                text: 'Removing the order',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Redirect to delete handler
+            window.location.href = 'helpers/delete_order.php?order_id=' + orderId;
+        }
+    });
 }
 
 // Also update the print button in the order details modal
@@ -757,6 +888,60 @@ $(document).ready(function() {
     $('#printReceipt').click(function() {
         const orderId = $('#updateOrderId').val();
         printReceipt(orderId);
+    });
+    
+    // Form submission with validation
+    $('form').on('submit', function(e) {
+        const customerId = $('select[name="customer_id"]').val();
+        const weight = $('input[name="weight"]').val();
+        const servicesChecked = $('.service-check:checked').length;
+        
+        if (!customerId) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Missing Information',
+                text: 'Please select a customer',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
+        
+        if (!weight || weight <= 0) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Invalid Weight',
+                text: 'Please enter a valid weight',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
+        
+        if (servicesChecked === 0) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'No Services Selected',
+                text: 'Please select at least one service',
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
+        
+        // If all validations pass, show loading state
+        Swal.fire({
+            title: 'Processing',
+            text: 'Creating your order...',
+            icon: 'info',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        return true;
     });
 });
 </script>

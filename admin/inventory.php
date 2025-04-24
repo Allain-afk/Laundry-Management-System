@@ -145,11 +145,17 @@ $equipment = $stmt->fetchAll();
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-primary" onclick="editItem(<?php echo $supply['item_id']; ?>, 'supply')">
+                                                    <button class="btn btn-sm btn-primary" onclick="editItem(<?php echo $supply['item_id']; ?>, 'supply')" title="Edit">
                                                         <i class="fa fa-edit"></i>
                                                     </button>
-                                                    <button class="btn btn-sm btn-info" onclick="viewHistory(<?php echo $supply['item_id']; ?>)">
+                                                    <button class="btn btn-sm btn-info" onclick="viewHistory(<?php echo $supply['item_id']; ?>)" title="View History">
                                                         <i class="fa fa-history"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-success" onclick="restockItem(<?php echo $supply['item_id']; ?>, 'supply')" title="Restock">
+                                                        <i class="fa fa-plus-circle"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" onclick="deleteItem(<?php echo $supply['item_id']; ?>, 'supply', '<?php echo addslashes($supply['name']); ?>')" title="Delete">
+                                                        <i class="fa fa-trash"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -204,11 +210,17 @@ $equipment = $stmt->fetchAll();
                                                 <td><?php echo htmlspecialchars($item['last_maintenance_date']); ?></td>
                                                 <td><?php echo htmlspecialchars($item['next_maintenance_date']); ?></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-primary" onclick="editItem(<?php echo $item['item_id']; ?>, 'equipment')">
+                                                    <button class="btn btn-sm btn-primary" onclick="editItem(<?php echo $item['item_id']; ?>, 'equipment')" title="Edit">
                                                         <i class="fa fa-edit"></i>
                                                     </button>
-                                                    <button class="btn btn-sm btn-warning" onclick="scheduleMaintenance(<?php echo $item['item_id']; ?>)">
+                                                    <button class="btn btn-sm btn-warning" onclick="scheduleMaintenance(<?php echo $item['item_id']; ?>)" title="Schedule Maintenance">
                                                         <i class="fa fa-tools"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-success" onclick="restockItem(<?php echo $item['item_id']; ?>, 'equipment')" title="Restock">
+                                                        <i class="fa fa-plus-circle"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger" onclick="deleteItem(<?php echo $item['item_id']; ?>, 'equipment', '<?php echo addslashes($item['name']); ?>')" title="Delete">
+                                                        <i class="fa fa-trash"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -347,6 +359,67 @@ $equipment = $stmt->fetchAll();
             </div>
         </div>
     </div>
+    
+    <!-- Edit Item Modal -->
+    <div class="modal fade" id="editItemModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fa fa-edit me-2"></i>Edit Item</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="editItemForm">
+                    <div class="modal-body">
+                        <div class="bg-light rounded h-100 p-4">
+                            <div class="mb-3">
+                                <label class="form-label">Item Name</label>
+                                <input type="text" class="form-control" name="name" id="editItemName" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" class="form-control" name="quantity" id="editItemQuantity" min="0" step="0.01" required>
+                            </div>
+                            <div id="editSupplyFields" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Unit</label>
+                                    <select class="form-select" name="unit" id="editItemUnit">
+                                        <option value="pieces">Pieces</option>
+                                        <option value="liters">Liters</option>
+                                        <option value="kg">Kilograms</option>
+                                        <option value="boxes">Boxes</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Minimum Stock Level</label>
+                                    <input type="number" class="form-control" name="minimum_stock" id="editMinimumStock" min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div id="editEquipmentFields" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" name="status" id="editItemStatus">
+                                        <option value="active">Active</option>
+                                        <option value="maintenance">Under Maintenance</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Next Maintenance Date</label>
+                                    <input type="date" class="form-control" name="next_maintenance_date" id="editNextMaintenanceDate">
+                                </div>
+                            </div>
+                            <input type="hidden" name="item_id" id="editItemId">
+                            <input type="hidden" name="category" id="editItemCategory">
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -358,19 +431,83 @@ $equipment = $stmt->fetchAll();
     <script src="lib/tempusdominus/js/moment.min.js"></script>
     <script src="lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
-    <script>
-        // Initialize all modals
-        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fa fa-trash me-2"></i>Confirm Delete</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <p class="mb-0">Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
+                    <p class="text-danger mt-2"><small>This action cannot be undone.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Restock Modal -->
+    <div class="modal fade" id="restockModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="fa fa-plus-circle me-2"></i>Restock Item</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="restockForm">
+                    <div class="modal-body">
+                        <div class="bg-light rounded h-100 p-4">
+                            <div class="mb-3">
+                                <label class="form-label">Item Name</label>
+                                <input type="text" class="form-control" id="restockItemName" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Current Quantity</label>
+                                <input type="text" class="form-control" id="currentQuantity" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Add Quantity</label>
+                                <input type="number" class="form-control" name="add_quantity" min="1" required>
+                            </div>
+                            <input type="hidden" name="item_id" id="restockItemId">
+                            <input type="hidden" name="category" id="restockCategory">
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Restock</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize modals (keeping only the ones we still need)
+        const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        const restockModal = new bootstrap.Modal(document.getElementById('restockModal'));
+
+        // Function to show success message with SweetAlert2
         function showSuccess(message) {
-            document.getElementById('successMessage').textContent = message;
-            successModal.show();
-            setTimeout(() => {
+            Swal.fire({
+                title: 'Success!',
+                text: message,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
                 location.reload();
-            }, 1500);
+            });
         }
 
         document.getElementById('addSupplyForm').addEventListener('submit', function(e) {
@@ -388,7 +525,7 @@ $equipment = $stmt->fetchAll();
                         bootstrap.Modal.getInstance(document.getElementById('addSupplyModal')).hide();
                         showSuccess('Supply added successfully!');
                     } else {
-                        alert('Error: ' + data.message);
+                        Swal.fire('Error!', data.message, 'error');
                     }
                 });
         });
@@ -408,13 +545,294 @@ $equipment = $stmt->fetchAll();
                         bootstrap.Modal.getInstance(document.getElementById('addEquipmentModal')).hide();
                         showSuccess('Equipment added successfully!');
                     } else {
-                        alert('Error: ' + data.message);
+                        Swal.fire('Error!', data.message, 'error');
                     }
                 });
         });
 
+        // Delete item function with SweetAlert2
+        function deleteItem(itemId, category, itemName) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `Do you want to delete ${itemName}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('action', 'delete_item');
+                    formData.append('item_id', itemId);
+                    formData.append('category', category);
+
+                    fetch('helpers/inventory_handler.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showSuccess(itemName + ' deleted successfully!');
+                            } else {
+                                Swal.fire('Error!', data.message, 'error');
+                            }
+                        });
+                }
+            });
+        }
+
+        // Restock item function with SweetAlert2
+        function restockItem(itemId, category) {
+            const formData = new FormData();
+            formData.append('action', 'get_item');
+            formData.append('item_id', itemId);
+            formData.append('category', category);
+
+            fetch('helpers/inventory_handler.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const item = data.item;
+                        const currentQty = item.quantity + ' ' + (item.unit || '');
+                        
+                        Swal.fire({
+                            title: 'Restock ' + item.name,
+                            html: `
+                                <div class="mb-3">
+                                    <label class="form-label">Current Quantity</label>
+                                    <input type="text" class="form-control" id="swal-current-quantity" value="${currentQty}" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Add Quantity</label>
+                                    <input type="number" class="form-control" id="swal-add-quantity" min="0.01" step="0.01" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Notes</label>
+                                    <textarea class="form-control" id="swal-restock-notes" rows="2"></textarea>
+                                </div>
+                            `,
+                            showCancelButton: true,
+                            confirmButtonText: 'Restock',
+                            focusConfirm: false,
+                            preConfirm: () => {
+                                const addQuantity = document.getElementById('swal-add-quantity').value;
+                                const notes = document.getElementById('swal-restock-notes').value;
+                                
+                                if (!addQuantity) {
+                                    Swal.showValidationMessage('Please enter quantity');
+                                    return false;
+                                }
+                                
+                                return { addQuantity, notes };
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const formData = new FormData();
+                                formData.append('action', 'restock_item');
+                                formData.append('item_id', itemId);
+                                formData.append('category', category);
+                                formData.append('quantity', result.value.addQuantity);
+                                formData.append('notes', result.value.notes);
+                                
+                                fetch('helpers/inventory_handler.php', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        showSuccess('Item restocked successfully!');
+                                    } else {
+                                        Swal.fire('Error!', data.message, 'error');
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        Swal.fire('Error!', data.message, 'error');
+                    }
+                });
+        }
+
+        // We no longer need the restock form submission handler as it's handled in the restockItem function
+
         // Set minimum date for maintenance date input
         document.querySelector('input[name="next_maintenance_date"]').min = new Date().toISOString().split('T')[0];
+        
+        // Edit item function with SweetAlert2
+        function editItem(itemId, category) {
+            const formData = new FormData();
+            formData.append('action', 'get_item');
+            formData.append('item_id', itemId);
+            formData.append('category', category);
+
+            fetch('helpers/inventory_handler.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const item = data.item;
+                        
+                        let htmlContent = '';
+                        if (category === 'supply') {
+                            htmlContent = `
+                                <input type="hidden" id="swal-item-id" value="${item.item_id}">
+                                <input type="hidden" id="swal-item-category" value="${category}">
+                                <div class="mb-3">
+                                    <label class="form-label">Supply Name</label>
+                                    <input type="text" class="form-control" id="swal-item-name" value="${item.name}" required>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" id="swal-item-quantity" value="${item.quantity}" min="0" step="0.01" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Unit</label>
+                                        <select class="form-select" id="swal-item-unit" required>
+                                            <option value="pieces" ${item.unit === 'pieces' ? 'selected' : ''}>Pieces</option>
+                                            <option value="liters" ${item.unit === 'liters' ? 'selected' : ''}>Liters</option>
+                                            <option value="kg" ${item.unit === 'kg' ? 'selected' : ''}>Kilograms</option>
+                                            <option value="boxes" ${item.unit === 'boxes' ? 'selected' : ''}>Boxes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Minimum Stock Level</label>
+                                    <input type="number" class="form-control" id="swal-minimum-stock" value="${item.minimum_stock}" min="0" step="0.01" required>
+                                </div>
+                            `;
+                        } else {
+                            htmlContent = `
+                                <input type="hidden" id="swal-item-id" value="${item.item_id}">
+                                <input type="hidden" id="swal-item-category" value="${category}">
+                                <div class="mb-3">
+                                    <label class="form-label">Equipment Name</label>
+                                    <input type="text" class="form-control" id="swal-item-name" value="${item.name}" required>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" id="swal-item-quantity" value="${item.quantity}" min="1" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Status</label>
+                                        <select class="form-select" id="swal-item-status" required>
+                                            <option value="active" ${item.status === 'active' ? 'selected' : ''}>Active</option>
+                                            <option value="maintenance" ${item.status === 'maintenance' ? 'selected' : ''}>Under Maintenance</option>
+                                            <option value="inactive" ${item.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Next Maintenance Date</label>
+                                    <input type="date" class="form-control" id="swal-next-maintenance-date" value="${item.next_maintenance_date}" required>
+                                </div>
+                            `;
+                        }
+                        
+                        Swal.fire({
+                            title: 'Edit ' + (category === 'supply' ? 'Supply' : 'Equipment'),
+                            html: htmlContent,
+                            showCancelButton: true,
+                            confirmButtonText: 'Save Changes',
+                            focusConfirm: false,
+                            preConfirm: () => {
+                                const itemData = {
+                                    item_id: document.getElementById('swal-item-id').value,
+                                    category: document.getElementById('swal-item-category').value,
+                                    name: document.getElementById('swal-item-name').value,
+                                    quantity: document.getElementById('swal-item-quantity').value
+                                };
+                                
+                                if (category === 'supply') {
+                                    itemData.unit = document.getElementById('swal-item-unit').value;
+                                    itemData.minimum_stock = document.getElementById('swal-minimum-stock').value;
+                                } else {
+                                    itemData.status = document.getElementById('swal-item-status').value;
+                                    itemData.next_maintenance_date = document.getElementById('swal-next-maintenance-date').value;
+                                }
+                                
+                                if (!itemData.name || !itemData.quantity) {
+                                    Swal.showValidationMessage('Please fill all required fields');
+                                    return false;
+                                }
+                                
+                                return itemData;
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const formData = new FormData();
+                                formData.append('action', 'update_item');
+                                
+                                // Add all form data
+                                Object.keys(result.value).forEach(key => {
+                                    formData.append(key, result.value[key]);
+                                });
+                                
+                                fetch('helpers/inventory_handler.php', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        showSuccess('Item updated successfully!');
+                                    } else {
+                                        Swal.fire('Error!', data.message, 'error');
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        Swal.fire('Error!', data.message, 'error');
+                    }
+                });
+        }
+        
+        // We no longer need the edit form submission handler as it's handled in the editItem function
+        
+        // Function to view item history with SweetAlert2
+        function viewHistory(itemId) {
+            const formData = new FormData();
+            formData.append('action', 'get_history');
+            formData.append('item_id', itemId);
+
+            fetch('helpers/inventory_handler.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Implementation for viewing history can be added here
+                        Swal.fire({
+                            title: 'Item History',
+                            text: 'History feature will be implemented soon!',
+                            icon: 'info'
+                        });
+                    } else {
+                        Swal.fire('Error!', data.message, 'error');
+                    }
+                });
+        }
+        
+        // Function to schedule maintenance with SweetAlert2
+        function scheduleMaintenance(itemId) {
+            // Implementation for scheduling maintenance can be added here
+            Swal.fire({
+                title: 'Schedule Maintenance',
+                text: 'Maintenance scheduling feature will be implemented soon!',
+                icon: 'info'
+            });
+        }
     </script>
 </body>
 

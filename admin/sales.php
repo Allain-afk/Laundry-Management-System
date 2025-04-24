@@ -56,10 +56,20 @@ try {
               LEFT JOIN sales_records sr ON o.order_id = sr.order_id
               LEFT JOIN admins a ON sr.admin_id = a.admin_id
               WHERE o.status = 'completed' 
+              AND (sr.payment_date IS NULL OR $date_condition)
               ORDER BY o.created_at DESC";
 
     $stmt = $pdo->prepare($query);
-    $stmt->execute();
+    
+    if ($period === 'custom') {
+        $stmt->execute([
+            ':start_date' => $start_date,
+            ':end_date' => $end_date
+        ]);
+    } else {
+        $stmt->execute();
+    }
+    
     $sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Update total sales query to use sales_records table
@@ -67,7 +77,7 @@ try {
                     FROM sales_records sr
                     INNER JOIN orders o ON sr.order_id = o.order_id
                     WHERE o.status = 'completed'
-                    AND $date_condition";
+                    AND (sr.payment_date IS NULL OR $date_condition)";
 
     if ($period === 'custom') {
         $stmt = $pdo->prepare($total_query);
@@ -218,11 +228,11 @@ try {
                                 <?php else: ?>
                                     <?php foreach ($sales as $sale): ?>
                                         <tr>
-                                            <td><?php echo $sale['sale_id']; ?></td>
-                                            <td><?php echo htmlspecialchars($sale['admin_name']); ?></td>
+                                            <td><?php echo isset($sale['sale_id']) ? $sale['sale_id'] : 'N/A'; ?></td>
+                                            <td><?php echo isset($sale['admin_name']) ? htmlspecialchars($sale['admin_name']) : 'N/A'; ?></td>
                                             <td><?php echo htmlspecialchars($sale['customer_name']); ?></td>
-                                            <td>₱<?php echo number_format($sale['amount_paid'], 2); ?></td>
-                                            <td><?php echo date('M d, Y', strtotime($sale['payment_date'])); ?></td>
+                                            <td>₱<?php echo isset($sale['amount_paid']) ? number_format($sale['amount_paid'], 2) : '0.00'; ?></td>
+                                            <td><?php echo isset($sale['payment_date']) ? date('M d, Y', strtotime($sale['payment_date'])) : 'N/A'; ?></td>
                                             <td>
                                                 <span class="badge bg-success">
                                                     <?php echo ucfirst($sale['order_status']); ?>

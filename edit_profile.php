@@ -83,41 +83,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <!-- Template Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
     
-    <!-- Success Animation Styles -->
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- Custom Styles -->
     <style>
-        .success-animation {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+        /* SweetAlert custom styles to match your color scheme */
+        .swal2-icon.swal2-success {
+            color: rgb(0, 56, 161) !important;
+            border-color: rgb(0, 56, 161) !important;
         }
         
-        .success-icon {
-            font-size: 80px;
-            color: rgb(0, 56, 161);
-            margin-bottom: 20px;
+        .swal2-icon.swal2-success .swal2-success-ring {
+            border-color: rgb(0, 56, 161) !important;
         }
         
-        .success-message {
-            font-size: 24px;
-            font-weight: bold;
-            color: rgb(0, 14, 204);
-            margin-bottom: 10px;
+        .swal2-icon.swal2-success [class^=swal2-success-line] {
+            background-color: rgb(0, 56, 161) !important;
         }
         
-        .redirect-message {
-            font-size: 16px;
-            color: #6c757d;
+        .swal2-title {
+            color: rgb(0, 14, 204) !important;
+        }
+        
+        .swal2-html-container {
+            color: #6c757d !important;
         }
         
         .profile-section {
@@ -180,16 +170,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 
 <body>
-    <!-- Success Animation Container -->
-    <?php if (isset($update_success) && $update_success): ?>
-    <div id="successAnimation" class="success-animation">
-        <div class="success-icon">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <div class="success-message">Profile Updated!</div>
-        <div class="redirect-message">Your profile has been successfully updated.</div>
-    </div>
-    <?php endif; ?>
+    <!-- Remove the old success animation container -->
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
@@ -220,7 +201,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="row">
             <div class="col-12">
                 <div class="bg-light rounded h-100 p-4">
-                    <h3 class="section-header mb-4"><i class="fas fa-user-edit me-2"></i>Edit Profile</h3>
+                    <h3 class="section-header mb-4"><i class="fas fa-user-edit me-2"></i> Edit Profile</h3>
                     
                     <?php if (isset($error_message)): ?>
                         <div class="alert alert-danger"><?php echo $error_message; ?></div>
@@ -293,7 +274,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <!-- Action Buttons -->
                         <div class="d-flex justify-content-between mt-4">
                             <a href="index.php" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left me-2"></i> Go Back
+                                <i class="fas fa-arrow-left me-2"></i> Go Back  
                             </a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i> Save Changes
@@ -323,6 +304,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="lib/waypoints/waypoints.min.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         function togglePassword(inputId, iconId) {
@@ -369,25 +353,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         });
         
-        // Handle success animation
+        // Handle success animation with SweetAlert
         <?php if (isset($update_success) && $update_success): ?>
         document.addEventListener('DOMContentLoaded', function() {
-            // Show success animation
-            const successAnimation = document.getElementById('successAnimation');
-            successAnimation.style.display = 'flex';
-            
-            // Fade in animation
-            setTimeout(function() {
-                successAnimation.style.opacity = '1';
-            }, 100);
-            
-            // Fade out animation after delay
-            setTimeout(function() {
-                successAnimation.style.opacity = '0';
-                setTimeout(function() {
-                    successAnimation.style.display = 'none';
-                }, 500);
-            }, 2000);
+            // Show SweetAlert success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Profile Updated!',
+                text: 'Your profile has been successfully updated.',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
         });
         <?php endif; ?>
     </script>
