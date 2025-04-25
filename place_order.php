@@ -344,12 +344,15 @@ $user = $stmt->fetch();
                                 <!-- Detergent Preference -->
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="detergent">Detergent Preference</label>
+                                        <label for="detergent">Choose a Detergent (Optional)</label>
                                         <select class="form-control" id="detergent" name="detergent_id">
-                                            <option value="">Use shop's default detergent</option>
+                                            <option value="">I have detergent already.</option>
                                             <?php foreach ($detergents as $detergent): ?>
                                                 <option value="<?php echo $detergent['item_id']; ?>">
-                                                    <?php echo htmlspecialchars($detergent['name']); ?> (₱<?php echo number_format($detergent['price'], 2); ?>)
+                                                    <?php echo htmlspecialchars($detergent['name']); ?>
+                                                    <?php if (isset($detergent['cost_per_unit']) && $detergent['cost_per_unit'] !== null): ?>
+                                                        (₱<?php echo number_format($detergent['cost_per_unit'], 2); ?>)
+                                                    <?php endif; ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
