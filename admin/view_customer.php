@@ -262,7 +262,7 @@ $orders = $stmt->fetchAll();
                                                 </td>
                                                 <td>₱<?php echo number_format($order['total_amount'], 2); ?></td>
                                                 <td>
-                                                    <a href="view_order.php?id=<?php echo $order['order_id']; ?>" class="btn btn-sm btn-info"><i class="fa fa-eye"></i></a>
+                                                    <button class="btn btn-sm btn-info view-order-btn" data-id="<?php echo $order['order_id']; ?>"><i class="fa fa-eye"></i></button>
                                                 </td>
                                             </tr>
                                             <?php endforeach; ?>
@@ -331,6 +331,102 @@ $orders = $stmt->fetchAll();
                 }
             });
         });
+        
+        // View order details
+        document.querySelectorAll('.view-order-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-id');
+                
+                // Show loading state
+                Swal.fire({
+                    title: 'Loading order details...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Fetch order details via AJAX
+                fetch(`helpers/get_order_details.php?order_id=${orderId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.error
+                            });
+                            return;
+                        }
+                        
+                        // Create services HTML
+                        let servicesHtml = '<div class="table-responsive"><table class="table table-sm table-bordered">';
+                        servicesHtml += '<thead><tr><th>Service</th><th>Quantity</th><th>Price</th></tr></thead><tbody>';
+                        
+                        // Add regular services (without prices)
+                        data.services.forEach(service => {
+                            servicesHtml += `<tr><td>${service.service_name}</td><td>N/A</td><td>N/A</td></tr>`;
+                        });
+                        
+                        // Add additional services (with prices)
+                        data.additional_services.forEach(service => {
+                            servicesHtml += `<tr><td>${service.name}</td><td>${service.quantity_formatted || 'N/A'}</td><td>₱${service.price_formatted}</td></tr>`;
+                        });
+                        
+                        servicesHtml += '</tbody></table></div>';
+                        
+                        // Create order details HTML
+                        let detailsHtml = `
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p><strong>Order ID:</strong> ${data.order.order_id}</p>
+                                    <p><strong>Customer:</strong> ${data.customer.full_name}</p>
+                                    <p><strong>Date:</strong> ${new Date(data.order.created_at).toLocaleString()}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Status:</strong> <span class="badge bg-${getStatusColor(data.order.status)}">${capitalizeFirstLetter(data.order.status)}</span></p>
+                                    <p><strong>Priority:</strong> ${capitalizeFirstLetter(data.order.priority)}</p>
+                                    <p><strong>Total Amount:</strong> ₱${data.order.total_amount_formatted}</p>
+                                </div>
+                            </div>
+                            <h6 class="mb-3">Services</h6>
+                            ${servicesHtml}
+                        `;
+                        
+                        // Show order details in SweetAlert2
+                        Swal.fire({
+                            title: 'Order Details',
+                            html: detailsHtml,
+                            width: '800px',
+                            confirmButtonText: 'Close',
+                            confirmButtonColor: '#3085d6'
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching order details:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to load order details. Please try again.'
+                        });
+                    });
+            });
+        });
+        
+        // Helper functions
+        function getStatusColor(status) {
+            switch(status) {
+                case 'pending': return 'warning';
+                case 'processing': return 'info';
+                case 'completed': return 'success';
+                case 'cancelled': return 'danger';
+                default: return 'secondary';
+            }
+        }
+        
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
     </script>
 </body>
 

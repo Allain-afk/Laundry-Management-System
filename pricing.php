@@ -204,7 +204,7 @@ require_once 'includes/db_connect.php';
                             <p>Free Pickup & Delivery</p>
                         </div>
                         <div class="mt-auto p-4">
-                            <button onclick="checkLoginAndOrder('extra_rush')" class="btn py-2 px-5" style="background-color: #DAA520; color: white;">Order Now</button>
+                            <button onclick="checkLoginAndOrder('rush')" class="btn py-2 px-5" style="background-color: #DAA520; color: white;">Order Now</button>
                         </div>
                     </div>
                 </div>
@@ -289,11 +289,11 @@ require_once 'includes/db_connect.php';
 
     <!-- checks if customer is logged in before ordering a laundry service -->
     <script>
-        function checkLoginAndOrder(service) {
+        function checkLoginAndOrder(priority) {
             <?php if (!isset($_SESSION['user_id'])): ?>
                 window.location.href = 'login.php';
             <?php else: ?>
-                window.location.href = 'order.php?service=' + service;
+                window.location.href = 'place_order.php?priority=' + priority;
             <?php endif; ?>
         }
     </script>

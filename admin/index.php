@@ -30,20 +30,22 @@ try {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $total_transactions = $result['total'] ?? 0;
 
-    // Monthly sales - sum of completed orders for current month
-    $stmt = $pdo->prepare("SELECT COALESCE(SUM(total_amount), 0) as total 
-                          FROM orders 
-                          WHERE MONTH(created_at) = MONTH(CURRENT_DATE()) 
-                          AND YEAR(created_at) = YEAR(CURRENT_DATE())
-                          AND status = 'completed'");
+    // Monthly sales - sum of completed orders for current month using sales_records table
+    $stmt = $pdo->prepare("SELECT COALESCE(SUM(sr.amount_paid), 0) as total 
+                          FROM sales_records sr
+                          INNER JOIN orders o ON sr.order_id = o.order_id
+                          WHERE MONTH(sr.payment_date) = MONTH(CURRENT_DATE()) 
+                          AND YEAR(sr.payment_date) = YEAR(CURRENT_DATE())
+                          AND o.status = 'completed'");
     $stmt->execute();
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $monthly_sales = $result['total'] ?? 0;
 
-    // Total revenue - sum of all completed orders
-    $stmt = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) as total 
-                        FROM orders 
-                        WHERE status = 'completed'");
+    // Total revenue - sum of all completed orders (lifetime sales)
+    $stmt = $pdo->query("SELECT COALESCE(SUM(sr.amount_paid), 0) as total 
+                        FROM sales_records sr
+                        INNER JOIN orders o ON sr.order_id = o.order_id
+                        WHERE o.status = 'completed'");
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $total_revenue = $result['total'] ?? 0;
 

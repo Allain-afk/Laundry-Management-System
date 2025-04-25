@@ -169,7 +169,7 @@ $admin = $stmt->fetch();
                                             $total_pages = ceil($total_records / $records_per_page);
                                             
                                             // Get records with pagination
-                                            $stmt = $pdo->prepare("SELECT * FROM customers ORDER BY customer_id DESC LIMIT :offset, :records_per_page");
+                                            $stmt = $pdo->prepare("SELECT * FROM customers ORDER BY customer_id ASC LIMIT :offset, :records_per_page");
                                             $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
                                             $stmt->bindParam(':records_per_page', $records_per_page, PDO::PARAM_INT);
                                             $stmt->execute();

@@ -113,7 +113,7 @@ session_start();
                                         <?php endif; ?>
                                     </div>
                                     <div class="dropdown-divider"></div>
-                                    <a href="edit_profile.php" class="dropdown-item">My Profile</a>
+                                    <a href="profile.php" class="dropdown-item">My Profile</a>
                                     <a href="helpers/logout.php" class="dropdown-item">Logout</a>
                                 </div>
                             </div>
@@ -418,7 +418,7 @@ session_start();
                         </div>
                         <!-- Basic package button -->
                         <div class="mt-auto p-4">
-                            <a href="pricing.php" class="btn btn-secondary py-2 px-5" style="color: #000000 !important;">
+                            <a href="place_order.php?priority=normal" class="btn btn-secondary py-2 px-5" style="color: #000000 !important;">
                                 <span class="order-text">Order Now</span>
                             </a>
                         </div>
@@ -441,7 +441,7 @@ session_start();
                         </div>
                         <!-- Standard package button -->
                         <div class="mt-auto p-4">
-                            <a href="pricing.php" class="btn btn-primary py-2 px-5" style="color: #000000 !important;">
+                            <a href="place_order.php?priority=express" class="btn btn-primary py-2 px-5" style="color: #000000 !important;">
                                 <span class="order-text">Order Now</span>
                             </a>
                         </div>
@@ -464,7 +464,7 @@ session_start();
                         </div>
                         <!-- Premium package button -->
                         <div class="mt-auto p-4">
-                            <a href="pricing.php" class="btn py-2 px-5" style="background-color: #DAA520; color: #000000 !important;">
+                            <a href="place_order.php?priority=rush" class="btn py-2 px-5" style="background-color: #DAA520; color: #000000 !important;">
                                 <span class="order-text">Order Now</span>
                             </a>
                         </div>

@@ -109,7 +109,7 @@ require_once 'includes/db_connect.php';
                                         <?php endif; ?>
                                     </div>
                                     <div class="dropdown-divider"></div>
-                                    <a href="profile.php" class="dropdown-item">My   Profile</a>
+                                    <a href="profile.php" class="dropdown-item">My Profile</a>
                                     <a href="helpers/logout.php" class="dropdown-item">Logout</a>
                                 </div>
                             </div>
