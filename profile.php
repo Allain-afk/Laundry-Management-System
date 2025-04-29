@@ -25,8 +25,6 @@ $orders = $stmt->fetchAll();
     <meta charset="utf-8">
     <title>DRYME - My Profile</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Free HTML Templates" name="keywords">
-    <meta content="Free HTML Templates" name="description">
 
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
@@ -43,6 +41,76 @@ $orders = $stmt->fetchAll();
 
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
+    
+    <!-- Custom Styles for Orders Table -->
+    <style>
+        /* Enhanced Table Styles */
+        .order-table-container {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        #ordersTable {
+            margin-bottom: 0;
+        }
+        
+        .thead-primary {
+            background-color: #0038A1;
+            color: white;
+        }
+        
+        .thead-primary th {
+            border: none;
+            padding: 15px 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        #ordersTable tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        #ordersTable tbody tr:hover {
+            background-color: rgba(0, 56, 161, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        #ordersTable td {
+            vertical-align: middle;
+            padding: 15px 10px;
+            border-color: #f0f0f0;
+        }
+        
+        /* Status Badge Enhancements */
+        .badge-pill {
+            font-weight: 500;
+            font-size: 0.8rem;
+            padding: 8px 12px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: #d1d1d1;
+            margin-bottom: 15px;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 767.98px) {
+            #ordersTable td, #ordersTable th {
+                padding: 10px 5px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -162,206 +230,148 @@ $orders = $stmt->fetchAll();
     <!-- Profile Start -->
     <div class="container-fluid py-5">
         <div class="container">
-            <?php if (isset($_SESSION['success'])): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <?php 
-                    echo $_SESSION['success']; 
-                    unset($_SESSION['success']);
-                    ?>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            <?php endif; ?>
-            
-            <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <?php 
-                    echo $_SESSION['error']; 
-                    unset($_SESSION['error']);
-                    ?>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            <?php endif; ?>
-            
             <div class="row">
-                <!-- User Information -->
-                <div class="col-lg-4 mb-5">
-                    <div class="bg-light p-4 mb-4 shadow-sm rounded">
-                        <h3 class="text-primary mb-4">Personal Information</h3>
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mr-3" style="width: 60px; height: 60px;">
-                                <i class="fa fa-user fa-2x"></i>
+                <div class="col-lg-4 mb-4">
+                    <div class="bg-light p-4 rounded shadow-sm">
+                        <h3 class="mb-4">Personal Information</h3>
+                        <div class="text-center mb-4">
+                            <!-- Replace image with Font Awesome icon -->
+                            <div class="mb-3">
+                                <i class="fa fa-user-circle text-primary" style="font-size: 80px;"></i>
                             </div>
-                            <div>
-                                <h5 class="mb-0"><?php echo htmlspecialchars($user['full_name']); ?></h5>
-                                <p class="text-muted mb-0"><?php echo htmlspecialchars($user['username']); ?></p>
-                            </div>
+                            <h5 class="mb-0">
+                                <?php 
+                                $fullName = '';
+                                if (isset($user['first_name']) && isset($user['last_name'])) {
+                                    $fullName = htmlspecialchars($user['first_name'] . ' ' . $user['last_name']);
+                                } elseif (isset($user['username'])) {
+                                    $fullName = htmlspecialchars($user['username']);
+                                } else {
+                                    $fullName = 'User';
+                                }
+                                echo $fullName;
+                                ?>
+                            </h5>
+                            <p class="text-muted">
+                                <?php echo isset($user['username']) ? htmlspecialchars($user['username']) : ''; ?>
+                            </p>
                         </div>
                         <div class="mb-3">
-                            <p class="mb-2"><i class="fa fa-envelope text-primary mr-2"></i> <?php echo htmlspecialchars($user['email']); ?></p>
-                            <p class="mb-2"><i class="fa fa-phone text-primary mr-2"></i> <?php echo htmlspecialchars($user['phone']); ?></p>
-                            <p class="mb-0"><i class="fa fa-map-marker-alt text-primary mr-2"></i> <?php echo htmlspecialchars($user['address']); ?></p>
+                            <i class="fa fa-envelope text-primary mr-2"></i>
+                            <?php echo isset($user['email']) ? htmlspecialchars($user['email']) : ''; ?>
                         </div>
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="edit_profile.php" class="btn btn-primary"><i class="fa fa-edit mr-2"></i>Edit Profile</a>
-                            <a href="place_order.php" class="btn btn-secondary"><i class="fa fa-plus mr-2"></i>New Order</a>
+                        <div class="mb-3">
+                            <i class="fa fa-phone text-primary mr-2"></i>
+                            <?php echo isset($user['phone']) ? htmlspecialchars($user['phone']) : ''; ?>
                         </div>
+                        <div class="mb-4">
+                            <i class="fa fa-map-marker-alt text-primary mr-2"></i>
+                            <?php echo isset($user['address']) ? htmlspecialchars($user['address']) : ''; ?>
+                        </div>
+                        <a href="edit_profile.php" class="btn btn-primary btn-block">
+                            <i class="fa fa-edit mr-2"></i> Edit Profile
+                        </a>
                     </div>
                 </div>
-                
-                <!-- User Orders -->
                 <div class="col-lg-8">
-                    <div class="bg-light p-4 shadow-sm rounded">
-                        <h3 class="text-primary mb-4">My Orders</h3>
+                    <div class="bg-light p-4 rounded shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="mb-0">My Orders</h3>
+                            <a href="place_order.php" class="btn btn-primary">
+                                <i class="fa fa-plus mr-2"></i> New Order
+                            </a>
+                        </div>
                         
                         <?php if (count($orders) > 0): ?>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead class="thead-light">
+                            <div class="table-responsive order-table-container">
+                                <table class="table table-hover" id="ordersTable">
+                                    <thead class="thead-primary">
                                         <tr>
-                                            <th>Order ID</th>
-                                            <th>Date</th>
-                                            <th>Services</th>
-                                            <th>Status</th>
-                                            <th>Amount</th>
-                                            <th>Details</th>
+                                            <th>ORDER ID</th>
+                                            <th>DATE</th>
+                                            <th>STATUS</th>
+                                            <th>AMOUNT PAID</th>
+                                            <th>ACTIONS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php foreach ($orders as $order): ?>
                                             <tr>
-                                                <td>#<?php echo htmlspecialchars($order['order_id']); ?></td>
+                                                <td>#<?php echo $order['order_id']; ?></td>
                                                 <td><?php echo date('M d, Y', strtotime($order['created_at'])); ?></td>
                                                 <td>
-                                                    <?php 
-                                                    // Get order services
-                                                    $stmt = $pdo->prepare("SELECT s.service_name FROM order_details od 
-                                                                          JOIN services s ON od.service_id = s.service_id 
-                                                                          WHERE od.order_id = ?");
-                                                    $stmt->execute([$order['order_id']]);
-                                                    $services = $stmt->fetchAll(PDO::FETCH_COLUMN);
-                                                    echo implode(", ", array_map('htmlspecialchars', $services));
+                                                    <?php
+                                                    $status_class = '';
+                                                    switch ($order['status']) {
+                                                        case 'pending':
+                                                            $status_class = 'warning';
+                                                            break;
+                                                        case 'processing':
+                                                            $status_class = 'info';
+                                                            break;
+                                                        case 'completed':
+                                                            $status_class = 'success';
+                                                            break;
+                                                        case 'cancelled':
+                                                            $status_class = 'danger';
+                                                            break;
+                                                        default:
+                                                            $status_class = 'secondary';
+                                                    }
                                                     ?>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-<?php 
-                                                        switch($order['status']) {
-                                                            case 'pending': echo 'warning'; break;
-                                                            case 'processing': echo 'info'; break;
-                                                            case 'completed': echo 'success'; break;
-                                                            case 'cancelled': echo 'danger'; break;
-                                                            default: echo 'secondary';
-                                                        }
-                                                    ?>">
-                                                        <?php echo ucfirst(htmlspecialchars($order['status'])); ?>
+                                                    <span class="badge badge-<?php echo $status_class; ?> badge-pill">
+                                                        <?php echo ucfirst($order['status']); ?>
                                                     </span>
                                                 </td>
                                                 <td>₱<?php echo number_format($order['total_amount'], 2); ?></td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info view-order-btn" data-toggle="modal" data-target="#orderModal<?php echo $order['order_id']; ?>">
-                                                        <i class="fa fa-eye"></i>
+                                                    <button class="btn btn-sm btn-info view-order-btn" data-order-id="<?php echo $order['order_id']; ?>">
+                                                        <i class="fa fa-eye"></i> View
                                                     </button>
+                                                    <?php if ($order['status'] == 'completed'): ?>
+                                                    <button class="btn btn-sm btn-primary reorder-btn" data-order-id="<?php echo $order['order_id']; ?>">
+                                                        <i class="fa fa-redo"></i> Reorder
+                                                    </button>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
-                                            
-                                            <!-- Order Details Modal -->
-                                            <div class="modal fade" id="orderModal<?php echo $order['order_id']; ?>" tabindex="-1" role="dialog" aria-labelledby="orderModalLabel<?php echo $order['order_id']; ?>" aria-hidden="true">
-                                                <div class="modal-dialog modal-lg" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header bg-primary text-white">
-                                                            <h5 class="modal-title" id="orderModalLabel<?php echo $order['order_id']; ?>">Order #<?php echo $order['order_id']; ?> Details</h5>
-                                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                                                                <span aria-hidden="true">&times;</span>
-                                                            </button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <h5 class="text-primary">Order Information</h5>
-                                                                    <p><strong>Order ID:</strong> #<?php echo $order['order_id']; ?></p>
-                                                                    <p><strong>Date:</strong> <?php echo date('F d, Y h:i A', strtotime($order['created_at'])); ?></p>
-                                                                    <p><strong>Status:</strong> 
-                                                                        <span class="badge badge-<?php 
-                                                                            switch($order['status']) {
-                                                                                case 'pending': echo 'warning'; break;
-                                                                                case 'processing': echo 'info'; break;
-                                                                                case 'completed': echo 'success'; break;
-                                                                                case 'cancelled': echo 'danger'; break;
-                                                                                default: echo 'secondary';
-                                                                            }
-                                                                        ?>">
-                                                                            <?php echo ucfirst($order['status']); ?>
-                                                                        </span>
-                                                                    </p>
-                                                                    <p><strong>Priority:</strong> <?php echo ucfirst($order['priority']); ?></p>
-                                                                    <p><strong>Weight:</strong> <?php echo $order['weight']; ?> kg</p>
-                                                                    <p><strong>Total Amount:</strong> ₱<?php echo number_format($order['total_amount'], 2); ?></p>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <h5 class="text-primary">Delivery Information</h5>
-                                                                    <p><strong>Pickup:</strong> <?php echo $order['pickup'] ? 'Yes' : 'No'; ?></p>
-                                                                    <p><strong>Pickup Date:</strong> <?php echo date('F d, Y', strtotime($order['pickup_date'])); ?></p>
-                                                                    <p><strong>Delivery:</strong> <?php echo $order['delivery'] ? 'Yes' : 'No'; ?></p>
-                                                                    <p><strong>Delivery Date:</strong> <?php echo date('F d, Y', strtotime($order['delivery_date'])); ?></p>
-                                                                    <?php if (!empty($order['special_instructions'])): ?>
-                                                                    <p><strong>Special Instructions:</strong> <?php echo htmlspecialchars($order['special_instructions']); ?></p>
-                                                                    <?php endif; ?>
-                                                                </div>
-                                                            </div>
-                                                            
-                                                            <hr>
-                                                            
-                                                            <h5 class="text-primary">Services</h5>
-                                                            <div class="table-responsive">
-                                                                <table class="table table-sm table-bordered">
-                                                                    <thead class="thead-light">
-                                                                        <tr>
-                                                                            <th>Service</th>
-                                                                            <th>Quantity</th>
-                                                                            <th>Price</th>
-                                                                            <th>Subtotal</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        <?php 
-                                                                        // Get order details
-                                                                        $stmt = $pdo->prepare("SELECT od.*, s.service_name 
-                                                                                              FROM order_details od
-                                                                                              JOIN services s ON od.service_id = s.service_id
-                                                                                              WHERE od.order_id = ?");
-                                                                        $stmt->execute([$order['order_id']]);
-                                                                        $orderDetails = $stmt->fetchAll();
-                                                                        
-                                                                        foreach ($orderDetails as $detail): 
-                                                                        ?>
-                                                                        <tr>
-                                                                            <td><?php echo htmlspecialchars($detail['service_name']); ?></td>
-                                                                            <td><?php echo $detail['quantity']; ?> kg</td>
-                                                                            <td>₱<?php echo number_format($detail['price'], 2); ?></td>
-                                                                            <td>₱<?php echo number_format($detail['subtotal'], 2); ?></td>
-                                                                        </tr>
-                                                                        <?php endforeach; ?>
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <!-- Order Details Modal -->
+                            <div class="modal fade" id="orderDetailsModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-primary text-white">
+                                            <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body" id="orderDetailsContent">
+                                            <div class="text-center">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="sr-only">Loading...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-primary" id="reorderBtn">Reorder</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         <?php else: ?>
-                            <div class="alert alert-info">
-                                <i class="fa fa-info-circle mr-2"></i> You don't have any orders yet. 
-                                <a href="place_order.php" class="alert-link">Place your first order now!</a>
+                            <div class="empty-state">
+                                <i class="fa fa-shopping-basket"></i>
+                                <h5 class="text-muted">No Orders Found</h5>
+                                <p class="text-muted mb-4">You don't have any laundry orders yet.</p>
+                                <a href="place_order.php" class="btn btn-primary">
+                                    <i class="fa fa-plus mr-2"></i> Place Your First Order
+                                </a>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -388,7 +398,7 @@ $orders = $stmt->fetchAll();
             <div class="col-lg-3 col-md-6 mb-5">
                 <h4 class="text-white mb-4">Get In Touch</h4>
                 <p>Contact us for any inquiries or to schedule a pickup.</p>
-                <p><i class="fa fa-map-marker-alt mr-2"></i>123 Street, New York, USA</p>
+                <p><i class="fa fa-map-marker-alt mr-2"></i>Cebu City, Philippines</p>
                 <p><i class="fa fa-phone-alt mr-2"></i>+012 345 67890</p>
                 <p><i class="fa fa-envelope mr-2"></i>info@example.com</p>
             </div>
@@ -440,6 +450,175 @@ $orders = $stmt->fetchAll();
 
     <!-- Template Javascript -->
     <script src="js/main.js"></script>
-</body>
+    
+    <!-- Orders Table JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const ordersTable = document.getElementById('ordersTable');
+            if (!ordersTable) return;
+            
+            const orderRows = document.querySelectorAll('#ordersTable tbody tr');
+            
+            // Add hover effect for better user experience
+            orderRows.forEach(row => {
+                row.addEventListener('mouseover', function() {
+                    this.style.backgroundColor = 'rgba(0, 56, 161, 0.05)';
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                row.addEventListener('mouseout', function() {
+                    this.style.backgroundColor = '';
+                    this.style.transform = '';
+                });
+            });
+            
+            // Add click effect for view buttons
+            const viewButtons = document.querySelectorAll('.view-order-btn');
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // The modal is handled by Bootstrap's data attributes
+                    // This is just for any additional functionality if needed
+                });
+            });
+        });
+    </script>
 
+<!-- Add SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function() {
+    // View Order Button
+    $('.view-order-btn').click(function() {
+        const orderId = $(this).data('order-id');
+        
+        // Show loading in modal
+        $('#orderDetailsModal').modal('show');
+        $('#orderDetailsContent').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+        
+        // Fetch order details
+        $.ajax({
+            url: 'get_order_details.php',
+            type: 'GET',
+            data: { order_id: orderId },
+            dataType: 'json',
+            success: function(response) {
+                if (response.error) {
+                    $('#orderDetailsContent').html('<div class="alert alert-danger">' + response.error + '</div>');
+                    return;
+                }
+                
+                const order = response.order;
+                const items = response.items;
+                
+                // Build HTML content
+                let html = `
+                    <div class="order-details">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5>Order Information</h5>
+                                <p><strong>Order ID:</strong> #${order.order_id}</p>
+                                <p><strong>Date:</strong> ${order.created_at_formatted}</p>
+                                <p><strong>Status:</strong> <span class="badge badge-${order.status_class} badge-pill">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span></p>
+                                <p><strong>Priority:</strong> ${order.priority.charAt(0).toUpperCase() + order.priority.slice(1)}</p>
+                                <p><strong>Weight:</strong> ${order.weight} kg</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Customer Information</h5>
+                                <p><strong>Name:</strong> ${order.full_name}</p>
+                                <p><strong>Phone:</strong> ${order.phone}</p>
+                                <p><strong>Address:</strong> ${order.address}</p>
+                                <p><strong>Pickup:</strong> ${order.pickup ? 'Yes' : 'No'}</p>
+                                <p><strong>Delivery:</strong> ${order.delivery ? 'Yes' : 'No'}</p>
+                            </div>
+                        </div>
+                        
+                        <h5>Order Items</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Service</th>
+                                        <th>Quantity (kg)</th>
+                                        <th>Price</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                
+                items.forEach(item => {
+                    html += `
+                        <tr>
+                            <td>${item.service_name}</td>
+                            <td>${item.quantity}</td>
+                            <td>₱${parseFloat(item.price).toFixed(2)}</td>
+                            <td>₱${parseFloat(item.subtotal).toFixed(2)}</td>
+                        </tr>`;
+                });
+                
+                html += `
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-right">Total:</th>
+                                        <th>₱${parseFloat(order.total_amount).toFixed(2)}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>`;
+                
+                if (order.special_instructions) {
+                    html += `
+                        <div class="mt-3">
+                            <h5>Special Instructions</h5>
+                            <p>${order.special_instructions}</p>
+                        </div>`;
+                }
+                
+                // Update modal content
+                $('#orderDetailsContent').html(html);
+                
+                // Show/hide reorder button based on status
+                if (order.status === 'completed') {
+                    $('#reorderBtn').show();
+                    $('#reorderBtn').data('order-id', order.order_id);
+                } else {
+                    $('#reorderBtn').hide();
+                }
+            },
+            error: function() {
+                $('#orderDetailsContent').html('<div class="alert alert-danger">Error loading order details. Please try again.</div>');
+            }
+        });
+    });
+    
+    // Reorder Button (in modal)
+    $('#reorderBtn').click(function() {
+        $('#orderDetailsModal').modal('hide');
+        
+        // Show SweetAlert
+        Swal.fire({
+            title: 'Coming Soon!',
+            text: 'The reorder feature will be available soon. Thank you for your patience!',
+            icon: 'info',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#0038A1'
+        });
+    });
+    
+    // Reorder Button (in table)
+    $('.reorder-btn').click(function() {
+        // Show SweetAlert
+        Swal.fire({
+            title: 'Coming Soon!',
+            text: 'The reorder feature will be available soon. Thank you for your patience!',
+            icon: 'info',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#0038A1'
+        });
+    });
+});
+</script>
+</body>
 </html>

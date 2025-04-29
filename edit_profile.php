@@ -273,11 +273,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         
                         <!-- Action Buttons -->
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="index.php" class="btn btn-secondary">
+                            <a href="profile.php" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left me-2"></i> Go Back  
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i> Save Changes
+                                <i class="fas fa-save me-2"></i>Save Changes
                             </button>
                         </div>
                     </form>

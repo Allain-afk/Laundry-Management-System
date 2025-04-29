@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 19, 2025 at 12:52 PM
+-- Generation Time: Apr 29, 2025 at 08:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `laundry_db`
+-- Database: `laundry`
 --
 
 -- --------------------------------------------------------
@@ -44,7 +44,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`admin_id`, `username`, `password`, `full_name`, `email`, `role`, `created_at`, `updated_at`, `profile_picture`) VALUES
-(1, 'admin', 'admin123', 'Allain Admin', 'admin@dryme.com', 'admin', '2025-04-13 02:06:20', '2025-04-19 10:31:21', 'admin_1_1745058681.jpg');
+(1, 'admin', 'admin123', 'Allain Admin', 'admin@dryme.com', 'admin', '2025-04-13 02:06:20', '2025-04-25 11:29:49', 'admin_1_1745580589.jpg');
 
 -- --------------------------------------------------------
 
@@ -70,7 +70,10 @@ CREATE TABLE `customers` (
 --
 
 INSERT INTO `customers` (`customer_id`, `username`, `password`, `email`, `full_name`, `phone`, `address`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'Allain', '123', 'allainralphlegaspi@gmail.com', 'Allain Legaspi', '123123', 'Casay', 'customer', '2025-04-12 14:48:13', '2025-04-13 03:36:26');
+(1, 'Allain', '123', 'allainralphlegaspi@gmail.com', 'Allain Ralph Legaspi', '123123', 'Casay', 'customer', '2025-04-12 14:48:13', '2025-04-25 03:43:40'),
+(3, 'venaenae', 'venaenae123', 'venaenae@gmail.com', 'Venesa Campilanan', '09123456789', 'Secret Lng hehe', 'customer', '2025-04-19 10:58:51', '2025-04-21 09:12:41'),
+(7, 'rudni', 'wakokahibaw', 'rodneyjosh2004@gmail.com', 'Rodney Josh', '09922794529', 'mandaue city,cebu', 'customer', '2025-04-21 06:15:58', '2025-04-21 06:15:58'),
+(9, 'jeremy', 'jeremy123', 'jeremy@gmail.com', 'Jeremy', '091234567899', 'Sa balay', 'customer', '2025-04-25 06:29:30', '2025-04-26 02:26:57');
 
 -- --------------------------------------------------------
 
@@ -101,18 +104,18 @@ CREATE TABLE `inventory` (
 
 INSERT INTO `inventory` (`item_id`, `name`, `category`, `quantity`, `unit`, `minimum_stock`, `cost_per_unit`, `status`, `last_maintenance_date`, `next_maintenance_date`, `supplier`, `notes`, `created_at`, `updated_at`) VALUES
 (1, 'Ariel Powder', 'supply', 100.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:15:55', '2025-04-13 14:15:55'),
-(2, 'Tide Powder', 'supply', 100.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:16:16', '2025-04-13 14:16:16'),
 (3, 'Surf Powder', 'supply', 100.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:16:28', '2025-04-13 14:16:28'),
-(4, 'Ariel Liquid Detergent', 'supply', 250.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:17:05', '2025-04-19 10:01:21'),
+(4, 'Ariel Liquid Detergent', 'supply', 260.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:17:05', '2025-04-24 17:27:49'),
 (5, 'Surf Liquid Detergent', 'supply', 250.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:17:24', '2025-04-13 14:17:24'),
 (6, 'Tide Liquid Detergent', 'supply', 250.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:17:40', '2025-04-13 14:17:40'),
 (7, 'Breeze Powder', 'supply', 100.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:18:15', '2025-04-13 14:18:15'),
 (8, 'Breeze Liquid Detergent', 'supply', 250.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:18:37', '2025-04-13 14:18:37'),
-(9, 'Washing Machine', 'equipment', 5.00, NULL, 10.00, NULL, 'active', NULL, '2025-05-13', NULL, NULL, '2025-04-13 14:19:09', '2025-04-13 14:19:09'),
-(10, 'Dryers', 'equipment', 5.00, NULL, 10.00, NULL, 'active', NULL, '2025-05-13', NULL, NULL, '2025-04-13 14:20:45', '2025-04-13 14:20:45'),
+(9, 'Washing Machine', 'equipment', 10.00, NULL, 10.00, NULL, 'active', NULL, '2025-05-13', NULL, NULL, '2025-04-13 14:19:09', '2025-04-24 17:28:47'),
+(10, 'Dryers', 'equipment', 10.00, NULL, 10.00, NULL, 'active', NULL, '2025-05-13', NULL, NULL, '2025-04-13 14:20:45', '2025-04-24 17:00:26'),
 (11, 'Iron', 'equipment', 10.00, NULL, 10.00, NULL, 'active', NULL, '2025-05-13', NULL, NULL, '2025-04-13 14:21:01', '2025-04-13 14:21:01'),
 (12, 'Plastic Bags', 'supply', 500.00, 'pieces', 50.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-13 14:22:07', '2025-04-13 14:22:07'),
-(13, 'Water Tank', 'equipment', 3.00, NULL, 10.00, NULL, 'active', NULL, '2025-05-13', NULL, NULL, '2025-04-13 14:22:33', '2025-04-13 14:22:33');
+(13, 'Water Tank', 'equipment', 5.00, NULL, 10.00, NULL, 'active', NULL, '2025-05-13', NULL, NULL, '2025-04-13 14:22:33', '2025-04-24 17:28:53'),
+(14, 'Tide Powder', 'supply', 200.00, 'pieces', 10.00, NULL, 'active', NULL, NULL, NULL, NULL, '2025-04-24 17:31:38', '2025-04-24 17:31:38');
 
 -- --------------------------------------------------------
 
@@ -156,14 +159,6 @@ CREATE TABLE `orders` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `orders`
---
-
-INSERT INTO `orders` (`order_id`, `customer_id`, `total_amount`, `status`, `pickup_date`, `delivery_date`, `created_at`, `priority`, `delivery`, `pickup`, `weight`, `admin_id`, `special_instructions`, `detergent_id`, `detergent_qty`) VALUES
-(5, 1, 262.50, 'processing', '0000-00-00', '0000-00-00', '2025-04-19 10:03:47', 'rush', 0, 0, 7.00, NULL, '', NULL, 1),
-(6, 1, 175.00, 'completed', '0000-00-00', '0000-00-00', '2025-04-19 10:43:45', 'normal', 0, 0, 7.00, NULL, '', NULL, 1);
-
---
 -- Triggers `orders`
 --
 DELIMITER $$
@@ -197,15 +192,6 @@ CREATE TABLE `order_details` (
   `subtotal` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `order_details`
---
-
-INSERT INTO `order_details` (`order_detail_id`, `order_id`, `service_id`, `quantity`, `price`, `subtotal`) VALUES
-(1, 5, 1, 7, 30.00, 210.00),
-(2, 5, 2, 7, 25.00, 175.00),
-(3, 6, 2, 7, 25.00, 175.00);
-
 -- --------------------------------------------------------
 
 --
@@ -220,14 +206,6 @@ CREATE TABLE `sales_records` (
   `amount_paid` decimal(10,2) NOT NULL,
   `payment_date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `sales_records`
---
-
-INSERT INTO `sales_records` (`sale_id`, `order_id`, `admin_id`, `customer_id`, `amount_paid`, `payment_date`) VALUES
-(2, 5, NULL, 1, 262.50, '2025-04-19 10:13:47'),
-(3, 6, NULL, 1, 175.00, '2025-04-19 10:48:22');
 
 -- --------------------------------------------------------
 
@@ -248,8 +226,8 @@ CREATE TABLE `services` (
 --
 
 INSERT INTO `services` (`service_id`, `service_name`, `description`, `price`, `status`) VALUES
-(1, 'Cloth Ironing', 'Professional dry cleaning service', 30.00, 'active'),
-(2, 'Wash, Dry, & Fold', 'Regular washing and folding service', 25.00, 'active'),
+(1, 'Cloth Ironing', 'Professional dry cleaning service', 10.00, 'active'),
+(2, 'Wash, Dry, & Fold', 'Regular washing and folding service', 30.00, 'active'),
 (3, 'Curtain Cleaning', 'Specialized curtain cleaning service', 10.00, 'active'),
 (4, 'Suit Cleaning', 'Professional suit and formal wear cleaning', 25.00, 'active'),
 (5, 'Delivery Service', 'Door-to-door delivery service', 25.00, 'active'),
@@ -336,13 +314,13 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `inventory_transactions`
@@ -354,19 +332,19 @@ ALTER TABLE `inventory_transactions`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `order_details`
 --
 ALTER TABLE `order_details`
-  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `sales_records`
 --
 ALTER TABLE `sales_records`
-  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `sale_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `services`

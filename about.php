@@ -9,8 +9,6 @@ require_once 'includes/db_connect.php';
     <meta charset="utf-8">
     <title>DRYME</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="Free HTML Templates" name="keywords">
-    <meta content="Free HTML Templates" name="description">
 
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
@@ -289,7 +287,7 @@ require_once 'includes/db_connect.php';
             </div>
             <div class="col-lg-3 col-md-6 mb-5">
                 <h4 class="text-white mb-4">Get In Touch</h4>
-                <p><i class="fa fa-map-marker-alt mr-2"></i>Cebu City</p>
+                <p><i class="fa fa-map-marker-alt mr-2"></i>Cebu City, Philippines</p>
                 <p><i class="fa fa-phone-alt mr-2"></i>+63 123 456 789</p>
                 <p><i class="fa fa-envelope mr-2"></i>dry.me@gmail.com</p>
             </div>

@@ -287,12 +287,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <h5 class="form-section-title"><i class="fas fa-user-circle me-2"></i> Account Information</h5>
                                 <div class="form-floating mb-3">
                                     <input type="text" class="form-control" id="floatingText" name="username" placeholder="Username" required>
-                                    <label for="floatingText"><i class="fas fa-user me-2"></i> Username</label>
                                     <div class="invalid-feedback">Please choose a username</div>
                                 </div>
                                 <div class="form-floating mb-3">
                                     <input type="email" class="form-control" id="floatingInput" name="email" placeholder="Email Address" required>
-                                    <label for="floatingInput"><i class="fas fa-envelope me-2"></i> Email Address</label>
                                     <div class="invalid-feedback">Please enter a valid email address</div>
                                 </div>
                             </div>
@@ -302,16 +300,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <h5 class="form-section-title"><i class="fas fa-id-card me-2"></i> Personal Information</h5>
                                 <div class="form-floating mb-3">
                                     <input type="text" class="form-control" id="floatingName" name="full_name" placeholder="Full Name" required>
-                                    <label for="floatingName"><i class="fas fa-user-tag me-2"></i> Full Name</label>
                                     <div class="invalid-feedback">Please enter your full name</div>
                                 </div>
                                 <div class="form-floating mb-3">
                                     <input type="tel" class="form-control" id="floatingPhone" name="phone" placeholder="Phone Number">
-                                    <label for="floatingPhone"><i class="fas fa-phone me-2"></i> Phone Number</label>
                                 </div>
                                 <div class="form-floating mb-3">
                                     <input type="text" class="form-control" id="floatingAddress" name="address" placeholder="Address">
-                                    <label for="floatingAddress"><i class="fas fa-map-marker-alt me-2"></i> Address</label>
                                 </div>
                             </div>
                             
@@ -320,7 +315,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <h5 class="form-section-title"><i class="fas fa-shield-alt me-2"></i> Security</h5>
                                 <div class="form-floating mb-3 position-relative">
                                     <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required onkeyup="checkPasswordStrength()">
-                                    <label for="floatingPassword"><i class="fas fa-lock me-2"></i> Password</label>
                                     <div class="password-toggle" onclick="togglePassword('floatingPassword', 'toggleIcon')">
                                         <i class="fas fa-eye" id="toggleIcon"></i>
                                     </div>
@@ -330,7 +324,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 </div>
                                 <div class="form-floating mb-4 position-relative">
                                     <input type="password" class="form-control" id="floatingConfirmPassword" name="confirm_password" placeholder="Confirm Password" required onkeyup="checkPasswordMatch()">
-                                    <label for="floatingConfirmPassword"><i class="fas fa-lock me-2"></i> Confirm Password</label>
                                     <div class="password-toggle" onclick="togglePassword('floatingConfirmPassword', 'toggleIconConfirm')">
                                         <i class="fas fa-eye" id="toggleIconConfirm"></i>
                                     </div>

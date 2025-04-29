@@ -177,7 +177,7 @@ session_start();
                         <i class="fa fa-2x fa-map-marker-alt text-white m-0 mr-3"></i>
                         <div class="d-flex flex-column">
                             <h5 class="text-white font-weight-medium">Our Location</h5>
-                            <p class="m-0 text-white">Cebu City</p>
+                            <p class="m-0 text-white">Cebu City, Philippines</p>
                         </div>
                     </div>
                 </div>
@@ -493,7 +493,7 @@ session_start();
             </div>
             <div class="col-lg-3 col-md-6 mb-5">
                 <h4 class="text-white mb-4">Get In Touch</h4>
-                <p><i class="fa fa-map-marker-alt mr-2"></i>Cebu City</p>
+                <p><i class="fa fa-map-marker-alt mr-2"></i>Cebu City, Philippines</p>
                 <p><i class="fa fa-phone-alt mr-2"></i>+63 123 456 789</p>
                 <p><i class="fa fa-envelope mr-2"></i>dry.me@gmail.com</p>
             </div>

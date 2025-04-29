@@ -15,7 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['username'] = $user['username'];
         $_SESSION['email'] = $user['email'];
         
-        // Set login success flag instead of immediate redirect
+        // check if login successful
         $login_success = true;
     } else {
         $error_message = "Invalid username or password";
@@ -29,8 +29,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="utf-8">
     <title>DRYME - Login</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="" name="keywords">
-    <meta content="" name="description">
 
     <!-- Favicon -->
     <link href="img/favicon.ico" rel="icon">
@@ -51,15 +49,178 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <!-- Customized Bootstrap Stylesheet -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Template Stylesheet -->
+    <!-- Main Stylesheet -->
     <link href="css/style.css" rel="stylesheet">
     
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
-    <!-- Animate CSS -->
-    <link rel="stylesheet" href="login.css">
     
+    <style>
+        /* custom styling for better layout */
+        .swal2-icon.swal2-success {
+            color: rgb(0, 56, 161) !important;
+            border-color: rgb(0, 56, 161) !important;
+        }
+        
+        .swal2-icon.swal2-success .swal2-success-ring {
+            border-color: rgb(0, 56, 161) !important;
+        }
+        
+        .swal2-icon.swal2-success [class^=swal2-success-line] {
+            background-color: rgb(0, 56, 161) !important;
+        }
+        
+        .swal2-title {
+            color: rgb(0, 14, 204) !important;
+        }
+        
+        .swal2-html-container {
+            color: #6c757d !important;
+        }
+        
+        /* Enhanced Login Form Styles */
+        .auth-card {
+            border-radius: 15px;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .auth-card:hover {
+            box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .auth-logo {
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+        }
+        
+        .form-floating > label {
+            padding: 12px 15px;
+        }
+        
+        .btn-auth {
+            border-radius: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn-auth:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 56, 161, 0.3);
+        }
+        
+        .btn-auth:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.6s;
+            z-index: -1;
+        }
+        
+        .btn-auth:hover:before {
+            left: 100%;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 20px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .password-toggle:hover {
+            color: #4e73df;
+        }
+        
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .auth-divider:before,
+        .auth-divider:after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .auth-divider span {
+            padding: 0 10px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .auth-link {
+            color: #4e73df;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .auth-link:hover {
+            color: #2e59d9;
+            text-decoration: underline;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+        
+        .alert-danger {
+            border-left-color: #e74a3b;
+            background-color: rgba(231, 74, 59, 0.1);
+        }
+        
+        /* Animation for form elements */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate3d(0, 20px, 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
+        }
+        
+        .form-floating, .form-check, .btn-auth, .auth-divider, .text-center {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        
+        .form-floating:nth-child(1) { animation-delay: 0.1s; }
+        .form-floating:nth-child(2) { animation-delay: 0.2s; }
+        .form-check { animation-delay: 0.3s; }
+        .btn-auth { animation-delay: 0.4s; }
+        .auth-divider { animation-delay: 0.5s; }
+        .text-center { animation-delay: 0.6s; }
+    </style>
 </head>
 
 <body>
@@ -79,7 +240,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div class="bg-light auth-card p-4 p-sm-5 my-4 mx-3">
                         <div class="text-center mb-4">
                             <a href="index.php">
-                                <h2 class="text-primary auth-logo mb-3"><i class="fa fa-tint me-2"></i>DRY ME</h2>
+                                <h2 class="text-primary auth-logo mb-3"><i class="fa fa-tint me-2"></i> DRY ME</h2>
                             </a>
                             <p class="text-muted">Welcome back! Please sign in to continue</p>
                         </div>
@@ -94,13 +255,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <form method="POST" action="" id="loginForm">
                             <div class="form-floating mb-4">
                                 <input type="text" class="form-control" id="floatingInput" name="text" placeholder="Username" required>
-                                <label for="floatingInput"><i class="fas fa-user me-2"></i> Username</label>
                                 <div class="invalid-feedback">Please enter your username</div>
                             </div>
                             
                             <div class="form-floating mb-4 position-relative">
                                 <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
-                                <label for="floatingPassword"><i class="fas fa-lock me-2"></i> Password</label>
                                 <div class="password-toggle" onclick="togglePassword()">
                                     <i class="fas fa-eye" id="toggleIcon"></i>
                                 </div>

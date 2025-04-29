@@ -20,23 +20,58 @@ $detergents = $stmt->fetchAll();
 // Get priority from URL parameter if available
 $selected_priority = isset($_GET['priority']) ? $_GET['priority'] : 'normal';
 
+// Variable to store order success message
+$order_success = false;
+$order_id = null;
+$error_message = null;
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
         
-        // Calculate total amount based on priority
-        $base_price = 210; // Base price from pricing page
+        // Initialize total amount
+        $total_amount = 0;
         $weight = $_POST['weight'];
         $priority = $_POST['priority'];
         
-        $total_amount = $base_price * $weight;
+        // Apply minimum weight of 7kg for pricing
+        $billing_weight = ($weight < 7) ? 7 : $weight;
         
-        // Apply priority multiplier
+        // Calculate service costs first
+        if (isset($_POST['services'])) {
+            // Get the service prices
+            $serviceStmt = $pdo->prepare("SELECT service_id, price FROM services WHERE service_id = ?");
+            
+            foreach ($_POST['services'] as $service_id) {
+                // Get the service price
+                $serviceStmt->execute([$service_id]);
+                $service = $serviceStmt->fetch();
+                
+                if ($service) {
+                    $price = $service['price'];
+                    $subtotal = $billing_weight * $price;
+                    $total_amount += $subtotal;
+                }
+            }
+        }
+        
+        // Apply priority multiplier to the total
         if ($priority === 'express') {
             $total_amount *= 1.25; // 25% extra for express
         } elseif ($priority === 'rush') {
             $total_amount *= 1.5; // 50% extra for rush
+        }
+        
+        // Handle optional pickup and delivery dates
+        $pickup_date = null;
+        if (isset($_POST['pickup']) && isset($_POST['specify_pickup_date']) && !empty($_POST['pickup_date'])) {
+            $pickup_date = $_POST['pickup_date'];
+        }
+        
+        $delivery_date = null;
+        if (isset($_POST['delivery']) && isset($_POST['specify_delivery_date']) && !empty($_POST['delivery_date'])) {
+            $delivery_date = $_POST['delivery_date'];
         }
         
         // Insert into orders table
@@ -46,8 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_id'],
             $total_amount,
             'pending', // Default status for new orders
-            $_POST['pickup_date'],
-            $_POST['delivery_date'],
+            $pickup_date,
+            $delivery_date,
             isset($_POST['delivery']) ? 1 : 0,
             isset($_POST['pickup']) ? 1 : 0,
             $_POST['priority'],
@@ -74,7 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $service = $serviceStmt->fetch();
                 
                 if ($service) {
-                    $quantity = $_POST['weight'];
+                    // Use billing weight for calculations
+                    $quantity = ($weight < 7) ? 7 : $weight; // Apply minimum weight of 7kg
                     $price = $service['price'];
                     $subtotal = $quantity * $price;
                     
@@ -90,12 +126,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $pdo->commit();
+        // Set success flag and order ID for SweetAlert
+        $order_success = true;
+        // Store success message in session for redirect case
         $_SESSION['success'] = "Order placed successfully! Our team will contact you soon.";
-        header("Location: profile.php");
-        exit();
+        
     } catch (Exception $e) {
+        // Rollback the transaction
         $pdo->rollBack();
-        $_SESSION['error'] = "Error placing order: " . $e->getMessage();
+        // Set error message for SweetAlert
+        $error_message = $e->getMessage();
     }
 }
 
@@ -132,6 +172,9 @@ $user = $stmt->fetch();
     
     <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -338,6 +381,7 @@ $user = $stmt->fetch();
                                         <label for="weight">Estimated Weight (kg)</label>
                                         <input type="number" class="form-control" id="weight" name="weight" min="1" max="20" value="1" required>
                                         <small class="form-text text-muted">Minimum Load: 7kg, Maximum: 20kg</small>
+                                        <small class="form-text text-muted font-weight-bold text-danger">Note: Orders less than 7kg will be charged at the 7kg rate (standard minimum)</small>
                                     </div>
                                 </div>
                                 
@@ -381,18 +425,27 @@ $user = $stmt->fetch();
                                     </div>
                                 </div>
                                 
-                                <!-- Dates -->
-                                <div class="col-md-6">
+                                <!-- Pickup Date (Optional) -->
+                                <div class="col-md-6" id="pickupDateContainer" style="display: none;">
                                     <div class="form-group">
                                         <label for="pickup_date">Preferred Pickup Date</label>
-                                        <input type="text" class="form-control datepicker" id="pickup_date" name="pickup_date" required>
+                                        <div class="custom-control custom-checkbox mb-2">
+                                            <input type="checkbox" class="custom-control-input" id="specify_pickup_date" name="specify_pickup_date" value="1">
+                                            <label class="custom-control-label" for="specify_pickup_date">Specify a preferred date</label>
+                                        </div>
+                                        <input type="text" class="form-control datepicker" id="pickup_date" name="pickup_date" placeholder="Select date" disabled>
                                     </div>
                                 </div>
                                 
-                                <div class="col-md-6">
+                                <!-- Delivery Date (Optional) -->
+                                <div class="col-md-6" id="deliveryDateContainer" style="display: none;">
                                     <div class="form-group">
                                         <label for="delivery_date">Preferred Delivery Date</label>
-                                        <input type="text" class="form-control datepicker" id="delivery_date" name="delivery_date" required>
+                                        <div class="custom-control custom-checkbox mb-2">
+                                            <input type="checkbox" class="custom-control-input" id="specify_delivery_date" name="specify_delivery_date" value="1">
+                                            <label class="custom-control-label" for="specify_delivery_date">Specify a preferred date</label>
+                                        </div>
+                                        <input type="text" class="form-control datepicker" id="delivery_date" name="delivery_date" placeholder="Select date" disabled>
                                     </div>
                                 </div>
                                 
@@ -400,7 +453,18 @@ $user = $stmt->fetch();
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="special_instructions">Special Instructions</label>
-                                        <textarea class="form-control" id="special_instructions" name="special_instructions" rows="3" placeholder="Any special instructions or requests?"></textarea>
+                                        <textarea class="form-control" id="special_instructions" name="special_instructions" rows="3" placeholder="Any special instructions for your laundry..."></textarea>
+                                    </div>
+                                </div>
+                                
+                                <!-- Estimated Total -->
+                                <div class="col-md-12 mb-4">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Estimated Total</h5>
+                                            <p class="card-text h3 text-primary" id="estimatedTotal">₱0.00</p>
+                                            <p class="small text-muted">Note: Orders less than 7kg will be charged at the 7kg rate (standard minimum)</p>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -489,64 +553,136 @@ $user = $stmt->fetch();
     <script src="js/main.js"></script>
     
     <script>
-        // Initialize date pickers
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set minimum date to today
-            const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            
-            // Format dates for flatpickr
-            const formatDate = (date) => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            };
-            
-            // Initialize pickup date picker
-            flatpickr("#pickup_date", {
-                minDate: formatDate(today),
-                dateFormat: "Y-m-d"
-            });
-            
-            // Initialize delivery date picker
-            flatpickr("#delivery_date", {
-                minDate: formatDate(tomorrow),
-                dateFormat: "Y-m-d"
+        $(document).ready(function() {
+            // Initialize flatpickr for date pickers
+            $(".datepicker").flatpickr({
+                minDate: "today",
+                dateFormat: "Y-m-d",
+                disableMobile: "true"
             });
             
             // Show/hide detergent quantity field
-            const detergentSelect = document.getElementById('detergent');
-            const detergentQtyContainer = document.getElementById('detergentQtyContainer');
-            
-            detergentSelect.addEventListener('change', function() {
-                if (this.value) {
-                    detergentQtyContainer.style.display = 'block';
+            $("#detergent").change(function() {
+                if ($(this).val() !== "") {
+                    $("#detergentQtyContainer").show();
                 } else {
-                    detergentQtyContainer.style.display = 'none';
+                    $("#detergentQtyContainer").hide();
                 }
             });
             
-            // Ensure at least one service is selected
-            const form = document.querySelector('form');
-            form.addEventListener('submit', function(event) {
-                const serviceCheckboxes = document.querySelectorAll('input[name="services[]"]');
-                let atLeastOneChecked = false;
+            // Show/hide pickup date field
+            $("#pickup").change(function() {
+                if ($(this).is(":checked")) {
+                    $("#pickupDateContainer").show();
+                } else {
+                    $("#pickupDateContainer").hide();
+                    $("#pickup_date").val("");
+                    $("#specify_pickup_date").prop("checked", false);
+                    $("#pickup_date").prop("disabled", true);
+                }
+            });
+            
+            // Show/hide delivery date field
+            $("#delivery").change(function() {
+                if ($(this).is(":checked")) {
+                    $("#deliveryDateContainer").show();
+                } else {
+                    $("#deliveryDateContainer").hide();
+                    $("#delivery_date").val("");
+                    $("#specify_delivery_date").prop("checked", false);
+                    $("#delivery_date").prop("disabled", true);
+                }
+            });
+            
+            // Enable/disable pickup date field
+            $("#specify_pickup_date").change(function() {
+                if ($(this).is(":checked")) {
+                    $("#pickup_date").prop("disabled", false);
+                } else {
+                    $("#pickup_date").prop("disabled", true);
+                    $("#pickup_date").val("");
+                }
+            });
+            
+            // Enable/disable delivery date field
+            $("#specify_delivery_date").change(function() {
+                if ($(this).is(":checked")) {
+                    $("#delivery_date").prop("disabled", false);
+                } else {
+                    $("#delivery_date").prop("disabled", true);
+                    $("#delivery_date").val("");
+                }
+            });
+            
+            // Calculate estimated total
+            function calculateTotal() {
+                var weight = parseFloat($("#weight").val()) || 0;
+                var priority = $("input[name='priority']:checked").val();
+                var total = 0;
                 
-                serviceCheckboxes.forEach(function(checkbox) {
-                    if (checkbox.checked) {
-                        atLeastOneChecked = true;
+                // Apply minimum weight of 7kg for pricing
+                var billingWeight = (weight < 7) ? 7 : weight;
+                
+                // Calculate service costs
+                $("input[name='services[]']:checked").each(function() {
+                    var serviceId = $(this).val();
+                    var priceText = $(this).siblings("label").text().split("₱")[1];
+                    var price = parseFloat(priceText);
+                    if (!isNaN(price)) {
+                        total += billingWeight * price;
                     }
                 });
                 
-                if (!atLeastOneChecked) {
-                    event.preventDefault();
-                    alert('Please select at least one laundry service.');
+                // Apply priority multiplier
+                if (priority === "express") {
+                    total *= 1.25;
+                } else if (priority === "rush") {
+                    total *= 1.5;
                 }
-            });
+                
+                // Update the estimated total
+                $("#estimatedTotal").text("₱" + total.toFixed(2));
+            }
+            
+            // Recalculate when inputs change
+            $("#weight").change(calculateTotal);
+            $("input[name='priority']").change(calculateTotal);
+            $("input[name='services[]']").change(calculateTotal);
+            
+            // Initial calculation
+            calculateTotal();
         });
     </script>
 </body>
 
+</html>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        <?php if ($order_success): ?>
+        Swal.fire({
+            title: "Order Placed Successfully!",
+            html: "Your order #<?php echo $order_id; ?> has been placed successfully.<br><small>Note: Orders less than 7kg are charged at the standard minimum rate (7kg).</small>",
+            icon: "success",
+            confirmButtonText: "View My Orders",
+            confirmButtonColor: "#0038A1"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = "profile.php";
+            }
+        });
+        <?php endif; ?>
+        
+        <?php if ($error_message): ?>
+        Swal.fire({
+            title: "Error!",
+            text: "There was an error placing your order: <?php echo $error_message; ?>",
+            icon: "error",
+            confirmButtonText: "Try Again",
+            confirmButtonColor: "#0038A1"
+        });
+        <?php endif; ?>
+    });
+</script>
+</body>
 </html>

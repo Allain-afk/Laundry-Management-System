@@ -60,21 +60,26 @@ try {
     $order['total_amount_formatted'] = number_format($order['total_amount'], 2);
     $order['weight_formatted'] = number_format($order['weight'], 2);
     
-    // Calculate base load price
-    $baseLoadPrice = $order['weight'] * 30;
+    // Calculate base load price from the actual services selected
+    $baseLoadPrice = 0;
+    foreach ($services as $service) {
+        $baseLoadPrice += $service['subtotal'];
+    }
     $order['load_weight_price'] = number_format($baseLoadPrice, 2);
     
     // Calculate additional services cost
     $additional_services = [];
     
-    // Add load weight as a service
-    $additional_services[] = [
-        'name' => 'Load Weight',
-        'price' => $baseLoadPrice,
-        'price_formatted' => number_format($baseLoadPrice, 2),
-        'quantity' => $order['weight'],
-        'quantity_formatted' => number_format($order['weight'], 2) . ' kg'
-    ];
+    // Add services as line items
+    foreach ($services as $service) {
+        $additional_services[] = [
+            'name' => $service['service_name'],
+            'price' => $service['subtotal'],
+            'price_formatted' => number_format($service['subtotal'], 2),
+            'quantity' => $service['quantity'],
+            'quantity_formatted' => number_format($service['quantity'], 2) . ' kg'
+        ];
+    }
     
     // Calculate and add priority fee if applicable
     $priorityFee = 0;
@@ -140,6 +145,9 @@ try {
     if ($order['delivery'] == 1) $calculatedTotal += 25.00;
     if ($order['pickup'] == 1) $calculatedTotal += 25.00;
     if ($detergent && $order['detergent_qty'] > 0) $calculatedTotal += (10.00 * $order['detergent_qty']);
+    
+    // Ensure the calculated total matches what's shown to customers
+    // This is important for price consistency between admin and customer views
     
     // Use the calculated total for consistency
     $order['calculated_total'] = $calculatedTotal;
