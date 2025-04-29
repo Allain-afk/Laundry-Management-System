@@ -31,7 +31,7 @@ Whether it's everyday wear, delicate suits, or heavy curtains, we handle each it
 
 ---
 
-## 📸 Dashboard Preview
+## 📸 Admin Dashboard Preview
 ![Preview](admin/img/Dashboard.png)
 
 
